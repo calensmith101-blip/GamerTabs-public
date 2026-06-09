@@ -5,9 +5,9 @@ const SEATS = ['X', 'O', 'P3', 'P4', 'P5', 'P6']
 
 const MODE_COPY = {
   ai: { icon: '🤖', title: 'Play vs AI', desc: 'Computer opponents. Choose difficulty and seats.' },
-  local: { icon: '📱', title: 'Same Device', desc: 'Pass-and-play on one phone, tablet or computer.' },
+  local: { icon: '📱', title: 'Pass & Play', desc: 'Offline turns on one phone, tablet or computer.' },
   single: { icon: '🧍', title: 'Solo', desc: 'Single-player mode.' },
-  localLive: { icon: 'LIVE', title: 'Local / Friends', desc: 'Find players, invite friends, or join a live room.' },
+  localLive: { icon: 'LIVE', title: 'Friends / Online', desc: 'Separate devices, nearby family, world players, and optional AI seats.' },
 }
 
 function maxPlayersForGame(game) {
@@ -110,12 +110,12 @@ export default function GameSetupPage({ navigate, params = {} }) {
 
     {!mode && <section className="setup-section gt-play-menu">
       <h3 className="setup-heading">How do you want to play?</h3>
-      <p className="setup-desc">Choose AI or solo practice, same-device play, or invite people through the live friends lobby.</p>
+      <p className="setup-desc">Choose solo or AI practice, offline pass-and-play, or play real people on separate devices with optional AI seats.</p>
       <div className="gt-play-choice-grid">
         {allowedModes.map(card => <button key={card.id} className="gt-play-choice" onClick={() => setMode(card.id)}>
           <span>{card.icon}</span><b>{card.title}</b><small>{card.desc || card.subtitle}</small>
         </button>)}
-        {game.supportsOnline && <button className="gt-play-choice" onClick={openPeople}>
+        {game.supportsOnline && maxPlayers >= 2 && <button className="gt-play-choice" onClick={openPeople}>
           <span>{MODE_COPY.localLive.icon}</span><b>{MODE_COPY.localLive.title}</b><small>{MODE_COPY.localLive.desc}</small>
         </button>}
       </div>
@@ -125,6 +125,6 @@ export default function GameSetupPage({ navigate, params = {} }) {
 
     {mode === 'ai' && <section className="setup-section gt-setup-card"><h3>Play vs AI</h3><div className="setup-difficulty-row">{['easy','medium','hard','expert'].map(d => <button key={d} className={`diff-btn ${difficulty === d ? 'active' : ''}`} onClick={() => setDifficulty(d)}>{d}</button>)}</div><CountControls /><button className="btn-primary setup-go" onClick={() => startOffline('ai')}>Start AI Game</button></section>}
 
-    {mode === 'local' && <section className="setup-section gt-setup-card"><h3>Same Device</h3><p className="setup-desc">Pass-and-play on this device. This works without internet.</p><CountControls includeLocal /><button className="btn-primary setup-go" onClick={() => startOffline('local')}>Start Same Device</button></section>}
+    {mode === 'local' && <section className="setup-section gt-setup-card"><h3>Pass & Play</h3><p className="setup-desc">Offline turns on this device. Use Friends / Online for separate devices and AI fill.</p><CountControls includeLocal /><button className="btn-primary setup-go" onClick={() => startOffline('local')}>Start Pass & Play</button></section>}
   </div>
 }

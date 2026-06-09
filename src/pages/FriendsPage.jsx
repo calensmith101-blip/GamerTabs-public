@@ -7,6 +7,7 @@ import { createRoom, joinRoom, normaliseCode, closeMyOpenRooms } from '../lib/ro
 import {
   ensureProfile,
   getProfilesByIds,
+  joinUniversalRoom,
   listActiveLiveGames,
   listFriendRequests,
   listFriends,
@@ -18,6 +19,7 @@ import {
 } from '../lib/socialUtils'
 
 const TABS = ['world', 'friends', 'invites', 'requests', 'saved']
+const SEATS = ['X', 'O', 'P3', 'P4', 'P5', 'P6']
 
 function displayUser(user) {
   return user?.display_name || user?.username || user?.email || 'Player'
@@ -40,8 +42,43 @@ function seenLabel(value) {
   return `${Math.round(mins / 1440)}d ago`
 }
 
+function maxPlayersForGame(game) {
+  const raw = String(game?.players || '')
+  if (raw.includes('6')) return 6
+  if (raw.includes('5')) return 5
+  if (raw.includes('4')) return 4
+  if (raw.includes('3')) return 3
+  return 2
+}
+
 function liveGameList() {
-  return GAMES.filter(game => game.supportsOnline !== false)
+  return GAMES.filter(game => game.supportsOnline !== false && maxPlayersForGame(game) >= 2)
+}
+
+function clampSeatCount(value, game) {
+  const min = String(game?.players || '').startsWith('1') ? 1 : 2
+  const max = Math.min(6, maxPlayersForGame(game))
+  return Math.max(min, Math.min(max, Number(value) || min))
+}
+
+function buildLiveSlots({ userId, target, playerCount, aiSeats }) {
+  const total = Math.max(2, Math.min(6, Number(playerCount) || 2))
+  const aiCount = Math.max(0, Math.min(total - 1, Number(aiSeats) || 0))
+  const humanOpenSeats = Math.max(1, total - 1 - aiCount)
+  return SEATS.slice(0, total).map((seat, index) => {
+    if (index === 0) return { seat, kind: 'human', userId, label: 'You' }
+    if (index <= humanOpenSeats) {
+      const invited = index === 1 ? target : null
+      return {
+        seat,
+        kind: 'open',
+        userId: null,
+        invitedUserId: invited?.id || null,
+        label: invited ? displayUser(invited) : 'Open player',
+      }
+    }
+    return { seat, kind: 'ai', userId: null, label: 'AI Player' }
+  })
 }
 
 export default function FriendsPage({ session, navigate, params = {} }) {
@@ -59,14 +96,25 @@ export default function FriendsPage({ session, navigate, params = {} }) {
   const [search, setSearch] = useState('')
   const [country, setCountry] = useState('')
   const [joinCode, setJoinCode] = useState('')
+  const [playerCount, setPlayerCount] = useState(2)
+  const [aiSeats, setAiSeats] = useState(0)
   const [status, setStatus] = useState('')
   const [loading, setLoading] = useState(false)
 
   const selectedGame = getGame(gameId) || games[0]
+  const maxPlayers = Math.min(6, maxPlayersForGame(selectedGame))
+  const seats = buildLiveSlots({ userId, target: null, playerCount, aiSeats })
 
   useEffect(() => {
     if (params.gameId) setGameId(params.gameId)
   }, [params.gameId])
+
+  useEffect(() => {
+    if (!selectedGame) return
+    const start = clampSeatCount(playerCount, selectedGame)
+    if (start !== playerCount) setPlayerCount(start)
+    if (aiSeats > start - 1) setAiSeats(Math.max(0, start - 1))
+  }, [selectedGame?.id])
 
   useEffect(() => {
     if (!userId) return
@@ -153,6 +201,9 @@ export default function FriendsPage({ session, navigate, params = {} }) {
     setStatus('')
     try {
       await closeMyOpenRooms(userId).catch(() => 0)
+      const total = clampSeatCount(playerCount, selectedGame)
+      const aiCount = Math.max(0, Math.min(total - 1, Number(aiSeats) || 0))
+      const slots = buildLiveSlots({ userId, target, playerCount: total, aiSeats: aiCount })
       const targetName = target ? displayUser(target) : 'open player'
       const room = await createRoom({
         userId,
@@ -167,11 +218,8 @@ export default function FriendsPage({ session, navigate, params = {} }) {
           invitedUserId: target?.id || null,
           invitedUserIds: target?.id ? [target.id] : [],
           playerSeats: { X: userId },
-          playerSlots: [
-            { seat: 'X', kind: 'human', userId, label: 'You' },
-            { seat: 'O', kind: 'open', userId: null, invitedUserId: target?.id || null, label: targetName },
-          ],
-          setup: { mode: 'localLive', playerCount: 2, difficulty: 'medium' },
+          playerSlots: slots,
+          setup: { mode: 'localLive', playerCount: total, aiSeats: aiCount, difficulty: 'medium' },
         },
       })
       if (target?.id) {
@@ -192,7 +240,12 @@ export default function FriendsPage({ session, navigate, params = {} }) {
     setLoading(true)
     setStatus('')
     try {
-      const room = await joinRoom(clean, userId, displayUser(profile || session?.user))
+      let room
+      try {
+        room = await joinUniversalRoom(clean, userId)
+      } catch (_) {
+        room = await joinRoom(clean, userId, displayUser(profile || session?.user))
+      }
       launch(room, playerRoleForRoom(room, userId))
     } catch (err) {
       setStatus(err.message || 'Could not join room.')
@@ -278,6 +331,35 @@ export default function FriendsPage({ session, navigate, params = {} }) {
           {games.map(game => <option key={game.id} value={game.id}>{game.title}</option>)}
         </select>
         <button className="btn-primary" disabled={loading} onClick={() => createInvite(null)}>Create Open Room</button>
+      </div>
+      <div className="gt-match-builder">
+        <div>
+          <b>Total seats</b>
+          <div className="gt-seat-buttons">
+            {Array.from({ length: Math.max(1, maxPlayers - 1) }, (_, i) => i + 2).map(count => (
+              <button
+                key={count}
+                className={playerCount === count ? 'active' : ''}
+                onClick={() => {
+                  setPlayerCount(count)
+                  setAiSeats(prev => Math.min(prev, count - 1))
+                }}>
+                {count}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <b>AI seats</b>
+          <div className="gt-seat-buttons">
+            {Array.from({ length: playerCount }, (_, i) => i).map(count => (
+              <button key={count} className={aiSeats === count ? 'active' : ''} onClick={() => setAiSeats(count)}>{count}</button>
+            ))}
+          </div>
+        </div>
+        <div className="gt-seat-preview">
+          {seats.map(slot => <span key={slot.seat} className={`slot-pill ${slot.kind}`}><b>{slot.seat}</b> {slot.kind === 'ai' ? 'AI' : slot.label}</span>)}
+        </div>
       </div>
       <div className="join-inline">
         <input className="games-search" value={joinCode} onChange={e => setJoinCode(e.target.value.toUpperCase())} placeholder="Enter room code" />
