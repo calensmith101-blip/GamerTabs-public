@@ -229,7 +229,10 @@ export default function FriendsPage({ session, navigate, params = {} }) {
         userId,
         username: displayUser(profile || session?.user),
         gameType: selectedGame.id,
-        isPublic: !target,
+        // RLS can hide a private room from the invited user before they have a
+        // room_members row. Keep invite rooms code-joinable so the second
+        // device can claim its seat; the random code is still required.
+        isPublic: true,
         initialState: {
           ...createInitialState(selectedGame.id),
           activeGameId: selectedGame.id,

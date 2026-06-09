@@ -177,6 +177,17 @@ export function buildDefaultSlotConfig(room, playerCount = 2) {
 export async function joinUniversalRoom(roomCode, userId) {
   const code = normaliseCode(roomCode)
   if (!code) throw new Error('Enter a room code')
+
+  try {
+    const { data, error } = await supabase.rpc('join_room_by_code_safe', {
+      p_room_code: code,
+    })
+    if (!error && data) return Array.isArray(data) ? data[0] : data
+    if (error) console.warn('[joinUniversalRoom] RPC failed, trying client fallback:', error.message)
+  } catch (err) {
+    console.warn('[joinUniversalRoom] RPC unavailable, trying client fallback:', err?.message || err)
+  }
+
   const { data: room, error } = await supabase.from('game_rooms').select('*').eq('room_code', code).maybeSingle()
   if (error) throw error
   if (!room) throw new Error('Room not found')

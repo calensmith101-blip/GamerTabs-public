@@ -130,6 +130,8 @@ create policy "game_rooms_select_live"
       where rm.room_code = game_rooms.room_code
         and rm.user_id = auth.uid()
     )
+    or state->>'invitedUserId' = auth.uid()::text
+    or coalesce(state->'invitedUserIds', '[]'::jsonb) ? auth.uid()::text
   );
 
 create policy "game_rooms_insert_host"
@@ -149,6 +151,8 @@ create policy "game_rooms_update_participants"
       where rm.room_code = game_rooms.room_code
         and rm.user_id = auth.uid()
     )
+    or state->>'invitedUserId' = auth.uid()::text
+    or coalesce(state->'invitedUserIds', '[]'::jsonb) ? auth.uid()::text
   )
   with check (
     auth.uid() = host_id
@@ -159,6 +163,8 @@ create policy "game_rooms_update_participants"
       where rm.room_code = game_rooms.room_code
         and rm.user_id = auth.uid()
     )
+    or state->>'invitedUserId' = auth.uid()::text
+    or coalesce(state->'invitedUserIds', '[]'::jsonb) ? auth.uid()::text
   );
 
 create table if not exists public.friends (
@@ -301,3 +307,186 @@ end;
 $$;
 
 grant execute on function public.close_room_safe(text) to authenticated;
+
+create or replace function public.join_room_by_code_safe(p_room_code text)
+returns public.game_rooms
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  clean_code text := upper(regexp_replace(coalesce(p_room_code, ''), '[^A-Za-z0-9]', '', 'g'));
+  room_row public.game_rooms;
+  previous_state jsonb;
+  slots jsonb;
+  next_slots jsonb := '[]'::jsonb;
+  slot jsonb;
+  seat_text text;
+  player_seats jsonb := '{}'::jsonb;
+  members jsonb;
+  i integer := 0;
+  chosen_index integer := -1;
+  seat_ids text[] := array['X','O','P3','P4','P5'];
+begin
+  if auth.uid() is null then
+    raise exception 'Not authenticated';
+  end if;
+
+  select * into room_row
+  from public.game_rooms
+  where room_code = clean_code
+  limit 1;
+
+  if not found then
+    raise exception 'Room not found';
+  end if;
+
+  previous_state := coalesce(room_row.state, '{}'::jsonb);
+  slots := coalesce(previous_state->'playerSlots', '[]'::jsonb);
+
+  if jsonb_array_length(slots) = 0 then
+    slots := jsonb_build_array(
+      jsonb_build_object('seat', 'X', 'kind', 'human', 'userId', coalesce(room_row.player_x::text, room_row.host_id::text)),
+      jsonb_build_object('seat', 'O', 'kind', 'open', 'userId', null)
+    );
+  end if;
+
+  for i in 0..jsonb_array_length(slots)-1 loop
+    slot := slots->i;
+    if slot->>'userId' = auth.uid()::text then
+      chosen_index := i;
+    end if;
+  end loop;
+
+  if chosen_index = -1 then
+    for i in 0..jsonb_array_length(slots)-1 loop
+      slot := slots->i;
+      if coalesce(slot->>'userId', '') = ''
+         and slot->>'invitedUserId' = auth.uid()::text then
+        chosen_index := i;
+        exit;
+      end if;
+    end loop;
+  end if;
+
+  if chosen_index = -1 then
+    for i in 0..jsonb_array_length(slots)-1 loop
+      slot := slots->i;
+      if coalesce(slot->>'userId', '') = ''
+         and coalesce(slot->>'kind', 'open') not in ('ai', 'local') then
+        chosen_index := i;
+        exit;
+      end if;
+    end loop;
+  end if;
+
+  if chosen_index = -1 then
+    raise exception 'No open online seat in this game';
+  end if;
+
+  for i in 0..jsonb_array_length(slots)-1 loop
+    slot := slots->i;
+    if i = chosen_index then
+      slot := slot || jsonb_build_object('kind', 'human', 'userId', auth.uid()::text, 'invitedUserId', null);
+    end if;
+    next_slots := next_slots || jsonb_build_array(slot);
+    if coalesce(slot->>'userId', '') <> '' then
+      seat_text := coalesce(slot->>'seat', seat_ids[least(i + 1, array_length(seat_ids, 1))]);
+      player_seats := player_seats || jsonb_build_object(seat_text, slot->>'userId');
+    end if;
+  end loop;
+
+  members := coalesce(previous_state->'members', '[]'::jsonb);
+  if not members ? auth.uid()::text then
+    members := members || to_jsonb(auth.uid()::text);
+  end if;
+
+  insert into public.room_members (room_code, user_id, role)
+  values (clean_code, auth.uid(), case when room_row.host_id = auth.uid() or room_row.player_x = auth.uid() then 'host' else 'member' end)
+  on conflict (room_code, user_id)
+  do update set role = excluded.role;
+
+  update public.game_rooms
+  set player_o = case
+        when player_o is null
+         and exists (
+           select 1 from jsonb_array_elements(next_slots) s
+           where s->>'seat' = 'O' and s->>'userId' = auth.uid()::text
+         )
+        then auth.uid()
+        else player_o
+      end,
+      player_o_name = case
+        when player_o_name is null
+         and exists (
+           select 1 from jsonb_array_elements(next_slots) s
+           where s->>'seat' = 'O' and s->>'userId' = auth.uid()::text
+         )
+        then auth.uid()::text
+        else player_o_name
+      end,
+      status = case when status in ('expired', 'cancelled', 'closed') then 'open' else status end,
+      state = previous_state || jsonb_build_object(
+        'members', members,
+        'playerSlots', next_slots,
+        'playerSeats', player_seats,
+        'lastJoinedAt', now()
+      ),
+      updated_at = now()
+  where room_code = clean_code
+  returning * into room_row;
+
+  return room_row;
+end;
+$$;
+
+grant execute on function public.join_room_by_code_safe(text) to authenticated;
+
+create table if not exists public.nudges (
+  id uuid primary key default gen_random_uuid(),
+  from_user_id uuid not null references auth.users(id) on delete cascade,
+  to_user_id uuid references auth.users(id) on delete cascade,
+  game_id text not null,
+  room_code text,
+  message text,
+  status text not null default 'unread',
+  created_at timestamptz not null default now()
+);
+
+alter table public.nudges enable row level security;
+
+drop policy if exists "nudges_participant_read" on public.nudges;
+drop policy if exists "nudges_sender_insert" on public.nudges;
+drop policy if exists "nudges_recipient_update" on public.nudges;
+
+create policy "nudges_participant_read"
+  on public.nudges
+  for select
+  using (auth.uid() = from_user_id or auth.uid() = to_user_id or to_user_id is null);
+
+create policy "nudges_sender_insert"
+  on public.nudges
+  for insert
+  with check (auth.uid() = from_user_id);
+
+create policy "nudges_recipient_update"
+  on public.nudges
+  for update
+  using (auth.uid() = to_user_id or auth.uid() = from_user_id or (to_user_id is null and auth.uid() is not null))
+  with check (auth.uid() = to_user_id or auth.uid() = from_user_id or (to_user_id is null and auth.uid() is not null));
+
+do $$
+begin
+  alter publication supabase_realtime add table public.game_rooms;
+exception
+  when duplicate_object then null;
+  when undefined_object then null;
+end $$;
+
+do $$
+begin
+  alter publication supabase_realtime add table public.nudges;
+exception
+  when duplicate_object then null;
+  when undefined_object then null;
+end $$;

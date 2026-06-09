@@ -10,7 +10,7 @@ const ROOM_META_KEYS = [
 function splitRoomState(rawState, initialState) {
   const state = rawState && typeof rawState === 'object' ? rawState : {}
   const gameState = state.gameState && typeof state.gameState === 'object' ? state.gameState : state
-  return { ...initialState, ...gameState }
+  return { ...initialState, ...preserveRoomMeta(state), ...gameState }
 }
 
 function preserveRoomMeta(rawState) {

@@ -9,6 +9,7 @@ import GameSetupPage     from './pages/GameSetupPage'
 import GamePlayPage      from './pages/GamePlayPage'
 import ProfilePage       from './pages/ProfilePage'
 import FriendsPage       from './pages/FriendsPage'
+import InviteCenter      from './components/InviteCenter'
 import { useLocation }   from './hooks/useLocation'
 import { useOffline }    from './hooks/useOffline'
 import { createOfflineSession } from './lib/offline'
@@ -199,6 +200,8 @@ export default function App() {
       {(page === 'friends' || page === 'friends-hub' || page === 'rooms') && (
         <FriendsPage session={session} navigate={navigate} params={pageParams} />
       )}
+
+      {!offline && session && <InviteCenter session={session} navigate={navigate} />}
     </div>
   )
 }
