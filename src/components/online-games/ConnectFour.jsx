@@ -75,6 +75,8 @@ export default function ConnectFour(props){
   const turn=isOnline ? (ogs.turn || P1) : turnLocal;
   const result=isOnline ? (ogs.result || null) : resultLocal;
   const myPiece=playerRole==='O'?P2:P1;
+  const onlineSlots=Array.isArray(ogs.playerSlots)?ogs.playerSlots:[];
+  const p2SeatIsAI=isOnline&&onlineSlots.some(slot=>slot.seat==='O'&&slot.kind==='ai');
   const setOnlineState=(next)=>onlineGame.updateState(next);
   const setBoard=(nextBoard)=>{ if(isOnline) setOnlineState({ ...ogs, board: nextBoard }); else setBoardLocal(nextBoard); };
   const setTurn=(nextTurn)=>{ if(isOnline) setOnlineState({ ...ogs, turn: nextTurn }); else setTurnLocal(nextTurn); };
@@ -93,7 +95,7 @@ export default function ConnectFour(props){
   const doMove=useCallback((col)=>{
     if(result||busy)return;
     if(isOnline && turn!==myPiece)return;
-    if(isAI&&turn===P2)return;
+    if((isAI||p2SeatIsAI)&&turn===P2)return;
     if(!validCols(board).includes(col))return;
     const nb=drop(board,col,turn);
     const win=checkWin(nb);
@@ -102,10 +104,10 @@ export default function ConnectFour(props){
     else if(isDraw(nb)) next.result='draw';
     if(isOnline) onlineGame.updateState(next);
     else { setBoardLocal(next.board); setTurnLocal(next.turn); setResultLocal(next.result); }
-  },[board,turn,result,busy,isAI,isOnline,myPiece,ogs,onlineGame]);
+  },[board,turn,result,busy,isAI,p2SeatIsAI,isOnline,myPiece,ogs,onlineGame]);
 
   useEffect(()=>{
-    if(!isAI||turn!==P2||result)return;
+    if(!(isAI||p2SeatIsAI)||turn!==P2||result)return;
     setBusy(true);
     const t=setTimeout(()=>{
       const col=aiMove(board);
@@ -120,7 +122,7 @@ export default function ConnectFour(props){
       setBusy(false);
     },400);
     return()=>clearTimeout(t);
-  },[isAI,turn,board,result]);
+  },[isAI,p2SeatIsAI,turn,board,result]);
 
   const winCells=result&&result!=='draw'?result.cells:[];
   const isW=(r,c)=>winCells.some(([wr,wc])=>wr===r&&wc===c);

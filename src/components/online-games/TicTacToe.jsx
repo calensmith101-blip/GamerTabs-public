@@ -66,16 +66,18 @@ export default function TicTacToe({ roomCode, playerRole, gameMode, difficulty, 
 
   const gs    = isOnline ? gameState : localState
   const setGs = isOnline ? updateState : setLocalState
+  const onlineSlots = Array.isArray(gs.playerSlots) ? gs.playerSlots : []
+  const oSeatIsAI = isOnline && onlineSlots.some(slot => slot.seat === 'O' && slot.kind === 'ai')
 
   // AI moves
   useEffect(() => {
-    if (!isAI || gs.currentTurn !== 'O' || gs.gameOver) return
+    if (!(isAI || oSeatIsAI) || gs.currentTurn !== 'O' || gs.gameOver) return
     const t = setTimeout(() => {
       const idx = aiMove(gs.board, difficulty || 'medium')
       if (idx !== -1) applyMove(idx)
     }, 500)
     return () => clearTimeout(t)
-  }, [gs.currentTurn, isAI, gs.gameOver])
+  }, [gs.currentTurn, isAI, oSeatIsAI, gs.gameOver])
 
   const applyMove = async (idx) => {
     if (gs.gameOver || gs.board[idx]) return
@@ -105,10 +107,9 @@ export default function TicTacToe({ roomCode, playerRole, gameMode, difficulty, 
 
   const winLine = gs.winner && gs.winner !== 'draw' ? getWinLine(gs.board) : []
   const onlineSeats = gs.playerSeats && typeof gs.playerSeats === 'object' ? gs.playerSeats : {}
-  const onlineSlots = Array.isArray(gs.playerSlots) ? gs.playerSlots : []
   const hasOpponent = !isOnline || Boolean(
     onlineSeats.O ||
-    onlineSlots.some(slot => slot.seat === 'O' && slot.userId) ||
+    onlineSlots.some(slot => slot.seat === 'O' && (slot.userId || slot.kind === 'ai')) ||
     gs.player_o
   )
 

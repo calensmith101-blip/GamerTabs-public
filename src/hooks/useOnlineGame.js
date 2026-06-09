@@ -111,7 +111,7 @@ export function useOnlineGame(roomCode, initialState) {
 
       const { data, error: err } = await supabase
         .from('game_rooms')
-        .update({ state: nextRoomState, updated_at: new Date().toISOString() })
+        .update({ state: nextRoomState, status: 'active', updated_at: new Date().toISOString() })
         .eq('room_code', normalizedCode)
         .select('state')
         .maybeSingle()

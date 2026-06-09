@@ -123,12 +123,12 @@ const isAI =
   modeText.includes('ai') ||
   modeText.includes('computer') ||
   modeText.includes('bot');
-  const isOnline = modeText.includes('online') && !!roomCode;
+  const isOnline = (modeText.includes('online') || modeText.includes('live')) && !!roomCode;
   const roomSlots = Array.isArray(onlineRoom?.state?.playerSlots) ? onlineRoom.state.playerSlots : [];
   const roomSeatUsers = onlineRoom?.state?.playerSeats || {};
   const aiSeatsFromRoom = roomSlots.filter(s => s.kind === 'ai').map(s => s.seat);
 
-  const initialCount = Math.min(5, Math.max(2, Number(playerCount) || roomSlots.length || (isAI || isOnline ? 4 : 2)));
+  const initialCount = Math.min(5, Math.max(2, roomSlots.length || Number(playerCount) || (isAI || isOnline ? 4 : 2)));
   const [activePlayerCount, setActivePlayerCount] = useState(initialCount);
   const onlineInitial = { ...initialCityTycoonState, players: PLAYER_IDS.slice(0, initialCount) };
   const onlineGame = useOnlineGame(isOnline ? roomCode : null, onlineInitial);
@@ -163,9 +163,15 @@ const isAI =
   };
 
   useEffect(() => {
-    dispatch({ type: 'SET_PLAYERS', count: activePlayerCount });
+    if (isOnline && roomSlots.length >= 2 && roomSlots.length !== activePlayerCount) {
+      setActivePlayerCount(Math.min(5, roomSlots.length));
+    }
+  }, [isOnline, roomSlots.length, activePlayerCount]);
+
+  useEffect(() => {
+    if (!isOnline) dispatch({ type: 'SET_PLAYERS', count: activePlayerCount });
     setPlayerPieces(Object.fromEntries(PLAYER_IDS.slice(0, activePlayerCount).map((player, index) => [player, PLAYER_PIECES[index % PLAYER_PIECES.length].id])));
-  }, [activePlayerCount]);
+  }, [activePlayerCount, isOnline]);
 
   const reset = () => {
     const s = cityTycoonReducer(state, { type: 'SET_PLAYERS', count: activePlayerCount });
@@ -209,7 +215,7 @@ const isAI =
   useEffect(() => {
     const aiPlayer = state.turn;
     const aiPlayers = state.players?.length ? state.players.slice(1) : ['O'];
-    const shouldAutoPlay = isAI && !state.winner && aiPlayers.includes(aiPlayer);
+    const shouldAutoPlay = !state.winner && (isOnline ? aiSeatsFromRoom.includes(aiPlayer) : isAI && aiPlayers.includes(aiPlayer));
     if (!shouldAutoPlay) return undefined;
 
     const t = setTimeout(() => {
@@ -287,7 +293,7 @@ const isAI =
     }, 850);
 
     return () => clearTimeout(t);
-  }, [isAI, state.winner, state.phase, state.turn, state.landedSpace, state.pendingPosition, state.message, state.players]);
+  }, [isAI, isOnline, aiSeatsFromRoom.join('|'), state.winner, state.phase, state.turn, state.landedSpace, state.pendingPosition, state.message, state.players]);
 
   // ── Derived state ──────────────────────────────────────────────────────────
   const { turn, phase, cash, positions, owned, buildings, lastRoll, winner, landedSpace, selectedSpace } = state;
@@ -414,7 +420,7 @@ const isAI =
             <button className="bv-button" style={{fontSize:12}} onClick={() => dispatch({ type:'RESOLVE_LAND' })}>Pay Tax</button>
           )}
           {isMyTurn && !canAuction && (
-            <button className="bv-button secondary" style={{fontSize:12}} onClick={() => dispatch({ type:'END_TURN' })}>End / Skip</button>
+            <button className="bv-button secondary" style={{fontSize:12}} onClick={() => dispatch({ type:'RESOLVE_LAND' })}>End / Skip</button>
           )}
         </div>
       </div>

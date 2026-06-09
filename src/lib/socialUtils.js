@@ -166,7 +166,7 @@ function buildPlayerSeats(room, joiningUserId) {
 export function buildDefaultSlotConfig(room, playerCount = 2) {
   const ids = ['X', 'O', 'P3', 'P4', 'P5', 'P6']
   const seats = room?.state?.playerSeats || {}
-  const count = Math.max(2, Math.min(6, Number(playerCount) || Object.keys(seats).length || 2))
+  const count = Math.max(2, Math.min(5, Number(playerCount) || Object.keys(seats).length || 2))
   return ids.slice(0, count).map((seat, index) => ({
     seat,
     userId: seats[seat] || null,
@@ -185,22 +185,26 @@ export async function joinUniversalRoom(roomCode, userId) {
   await upsertRoomMember(code, userId, isHost ? 'host' : 'member')
 
   const previousState = room.state && typeof room.state === 'object' ? room.state : {}
-  const maxSeats = Math.max(2, Math.min(6, Number(previousState?.setup?.playerCount) || previousState?.playerSlots?.length || 2))
+  const maxSeats = Math.max(2, Math.min(5, Number(previousState?.setup?.playerCount) || previousState?.playerSlots?.length || 2))
   const baseSlots = Array.isArray(previousState.playerSlots) && previousState.playerSlots.length
     ? previousState.playerSlots.slice(0, maxSeats).map((slot, index) => ({
         seat: slot.seat || ['X', 'O', 'P3', 'P4', 'P5', 'P6'][index],
         kind: slot.kind || (slot.userId ? 'human' : 'open'),
         userId: slot.userId || null,
         label: slot.label || null,
+        invitedUserId: slot.invitedUserId || null,
       }))
     : buildDefaultSlotConfig(room, maxSeats)
 
   const alreadySeat = baseSlots.find(slot => String(slot.userId) === String(userId))
   let nextSlots = baseSlots
   if (!alreadySeat) {
-    const firstOpen = nextSlots.findIndex(slot => slot.kind === 'open' || (!slot.userId && slot.kind !== 'ai' && slot.kind !== 'local'))
+    const invitedSeat = nextSlots.findIndex(slot => !slot.userId && String(slot.invitedUserId || '') === String(userId))
+    const firstOpen = invitedSeat !== -1
+      ? invitedSeat
+      : nextSlots.findIndex(slot => slot.kind === 'open' || (!slot.userId && slot.kind !== 'ai' && slot.kind !== 'local'))
     if (firstOpen === -1) throw new Error('No open online seat in this game. Ask the host to make a seat open.')
-    nextSlots = nextSlots.map((slot, index) => index === firstOpen ? { ...slot, kind: 'human', userId } : slot)
+    nextSlots = nextSlots.map((slot, index) => index === firstOpen ? { ...slot, kind: 'human', userId, invitedUserId: null } : slot)
   }
 
   const playerSeats = {}
@@ -211,7 +215,7 @@ export async function joinUniversalRoom(roomCode, userId) {
   const members = Array.isArray(previousState.members) ? previousState.members : []
   const nextMembers = members.includes(userId) ? members : [...members, userId]
   const patch = {
-    status: room.status === 'expired' ? 'open' : room.status,
+    status: ['expired', 'cancelled', 'closed'].includes(room.status) ? 'open' : room.status,
     state: {
       ...previousState,
       members: nextMembers,
@@ -288,16 +292,26 @@ export async function listUniversalRooms(userId) {
 }
 
 export async function deleteUniversalRoom(roomCode, userId) {
+  return closeUniversalRoom(roomCode, userId)
+}
+
+export async function closeUniversalRoom(roomCode, userId) {
   const code = normaliseCode(roomCode)
   const { data: room } = await supabase.from('game_rooms').select('*').eq('room_code', code).maybeSingle()
   if (!room) throw new Error('Room not found')
   if (room.host_id !== userId && room.player_x !== userId) throw new Error('Only the host can delete this room')
   try {
-    const { error } = await supabase.from('room_members').delete().eq('room_code', code)
-    if (error) console.warn('[socialUtils] room member cleanup failed:', error.message)
+    const { data, error } = await supabase.rpc('close_room_safe', { p_room_code: code })
+    if (!error && data) return true
   } catch (_) {}
-  const { error } = await supabase.from('game_rooms').delete().eq('room_code', code)
+  const { error } = await supabase.from('game_rooms').update({
+    status: 'cancelled',
+    is_public: false,
+    updated_at: new Date().toISOString(),
+    state: { ...(room.state || {}), closedAt: new Date().toISOString(), closedBy: userId },
+  }).eq('room_code', code)
   if (error) throw error
+  return true
 }
 
 export async function leaveUniversalRoom(roomCode, userId) {
@@ -310,10 +324,35 @@ export async function leaveUniversalRoom(roomCode, userId) {
   if (!room) return
   const members = (Array.isArray(room.state?.members) ? room.state.members : []).filter(id => id !== userId)
   if (room.host_id === userId || room.player_x === userId) {
-    await deleteUniversalRoom(code, userId)
+    await closeUniversalRoom(code, userId)
   } else {
-    try { await supabase.from('game_rooms').update({ state: { ...(room.state || {}), members }, updated_at: new Date().toISOString() }).eq('room_code', code) } catch (_) {}
+    const previousSlots = Array.isArray(room.state?.playerSlots) ? room.state.playerSlots : []
+    const nextSlots = previousSlots.map(slot => String(slot.userId || '') === String(userId)
+      ? { ...slot, userId: null, kind: 'open', label: 'Open player' }
+      : slot)
+    const playerSeats = {}
+    nextSlots.forEach(slot => {
+      if (slot?.userId) playerSeats[slot.seat] = slot.userId
+    })
+    try {
+      await supabase.from('game_rooms').update({
+        player_o: room.player_o === userId ? null : room.player_o,
+        player_o_name: room.player_o === userId ? null : room.player_o_name,
+        state: { ...(room.state || {}), members, playerSlots: nextSlots, playerSeats },
+        updated_at: new Date().toISOString(),
+      }).eq('room_code', code)
+    } catch (_) {}
   }
+}
+
+export async function removeFriend(userId, friendId) {
+  if (!userId || !friendId) return false
+  const { error } = await supabase
+    .from('friends')
+    .delete()
+    .or(`and(user_id.eq.${userId},friend_id.eq.${friendId}),and(user_id.eq.${friendId},friend_id.eq.${userId})`)
+  if (error) throw error
+  return true
 }
 
 
@@ -389,6 +428,10 @@ export async function listMessages(userId, roomCode = null, otherUserId = null) 
   if (code) {
     builders.push(
       async () => {
+        const { data, error } = await supabase.from('room_messages').select('*').eq('room_code', code).order('created_at', { ascending: true }).limit(150)
+        return { data: (data || []).map(m => ({ ...m, body: m.body ?? m.message, sender_id: m.sender_id ?? m.user_id })), error }
+      },
+      async () => {
         const { data, error } = await supabase.from('messages').select('*').eq('room_code', code).order('created_at', { ascending: true }).limit(150)
         return { data: (data || []).map(m => ({ ...m, body: m.body ?? m.message, sender_id: m.sender_id ?? m.user_id })), error }
       },
@@ -430,6 +473,7 @@ export async function sendMessage({ senderId, recipientId = null, roomCode = nul
   if (!text) return null
   const code = roomCode ? normaliseCode(roomCode) : null
   const builders = code ? [
+    () => supabase.from('room_messages').insert({ sender_id: senderId, room_code: code, body: text }).select().maybeSingle(),
     () => supabase.from('messages').insert({ sender_id: senderId, recipient_id: null, room_code: code, body: text }).select().maybeSingle(),
     () => supabase.from('chat_messages').insert({ room_code: code, user_id: senderId, message: text }).select().maybeSingle(),
   ] : [

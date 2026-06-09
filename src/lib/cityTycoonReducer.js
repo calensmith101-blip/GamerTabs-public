@@ -416,6 +416,7 @@ export function cityTycoonReducer(state, action) {
     }
 
     case 'END_TURN': {
+      if (state.phase !== 'end') return state
       // Doubles grant one extra roll after the landed-space action resolves.
       const [die1, die2] = Array.isArray(state.lastRoll) ? state.lastRoll : []
       const earnedExtraRoll = die1 && die1 === die2 && (state.doublesCount?.[state.turn] || 0) > 0 && !state.inJail?.[state.turn]

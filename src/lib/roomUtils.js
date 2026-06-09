@@ -26,7 +26,7 @@ export async function cleanupStaleRooms(userId = null) {
   try {
     let q1 = supabase
       .from('game_rooms')
-      .update({ status: 'expired', is_public: false })
+      .update({ status: 'cancelled', is_public: false, updated_at: new Date().toISOString() })
       .in('status', ['waiting', 'ready', 'open'])
       .lt('created_at', dayAgo);
     if (userId) q1 = q1.eq('host_id', userId);
@@ -60,7 +60,7 @@ export async function closeMyOpenRooms(userId) {
   try {
     const { data, error } = await supabase
       .from('game_rooms')
-      .update({ status: 'expired', is_public: false, updated_at: new Date().toISOString() })
+      .update({ status: 'cancelled', is_public: false, updated_at: new Date().toISOString() })
       .eq('host_id', userId)
       .in('status', ['waiting', 'ready', 'open'])
       .select('id');
@@ -91,7 +91,7 @@ export async function createRoom({ userId, username, gameType, isPublic = true, 
       .eq('host_id', userId)
       .in('status', ['waiting', 'ready', 'open']);
     if ((recount || 0) >= MAX_OPEN_ROOMS_PER_HOST) {
-      throw new Error('You already have 3 open games. I tried to auto-close old lobbies but Supabase blocked it. Use Clear Old Live Games, then try again.');
+      throw new Error('You already have 3 open games. Open Friends & Live Play > Resume Games to resume, leave, or close old waiting games, then try again.');
     }
   }
   let attempts = 0;
@@ -207,7 +207,7 @@ export async function updateRoomState(roomCode, newState, extra = {}) {
 
   const { data, error } = await supabase
     .from('game_rooms')
-    .update({ state: mergedState, updated_at: new Date().toISOString(), ...extra })
+    .update({ state: mergedState, status: current?.status === 'waiting' || current?.status === 'ready' || current?.status === 'open' ? 'active' : current?.status || 'active', updated_at: new Date().toISOString(), ...extra })
     .eq('room_code', code)
     .select()
     .single();
@@ -242,9 +242,9 @@ export async function deleteRoom(roomCode, userId) {
 
   const { error } = await supabase
     .from('game_rooms')
-    .delete()
+    .update({ status: 'cancelled', is_public: false, updated_at: new Date().toISOString() })
     .eq('room_code', normaliseCode(roomCode));
-  if (error) throw new Error(error.message || 'Could not delete room');
+  if (error) throw new Error(error.message || 'Could not close room');
   return true;
 }
 
