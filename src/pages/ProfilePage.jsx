@@ -1,6 +1,26 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../supabaseClient'
 import { deriveStats } from '../lib/scoring'
+import { isOfflineSession, loadOfflineProfile, saveOfflineProfile } from '../lib/offline'
+
+function fallbackUsername(session) {
+  return session?.user?.user_metadata?.username
+    || session?.user?.user_metadata?.display_name
+    || session?.user?.email?.split('@')?.[0]
+    || 'Player'
+}
+
+function profileToForm(data, session) {
+  const username = data?.username || fallbackUsername(session)
+  return {
+    username,
+    displayName: data?.display_name || username,
+    town: data?.town || '',
+    stateRegion: data?.state || '',
+    country: data?.country || '',
+    localDiscovery: !!data?.local_discovery_enabled,
+  }
+}
 
 export default function ProfilePage({ session, navigate }) {
   const [profile, setProfile]   = useState(null)
@@ -13,39 +33,71 @@ export default function ProfilePage({ session, navigate }) {
 
   useEffect(() => {
     if (!session?.user?.id) return
-    supabase.from('profiles').select('*').eq('id', session.user.id).single()
+
+    if (isOfflineSession(session)) {
+      const data = loadOfflineProfile(session)
+      setProfile(data)
+      setForm(profileToForm(data, session))
+      return
+    }
+
+    supabase.from('profiles').select('*').eq('id', session.user.id).maybeSingle()
       .then(({ data }) => {
-        if (!data) return
-        setProfile(data)
-        setForm({
-          username:      data.username || '',
-          displayName:   data.display_name || '',
-          town:          data.town || '',
-          stateRegion:   data.state || '',
-          country:       data.country || '',
-          localDiscovery: !!data.local_discovery_enabled,
-        })
+        const nextProfile = data || {
+          id: session.user.id,
+          email: session.user.email,
+          username: fallbackUsername(session),
+          display_name: fallbackUsername(session),
+          points: 0,
+          crowns: 0,
+          level: 1,
+          wins: 0,
+          losses: 0,
+          local_discovery_enabled: false,
+        }
+        setProfile(nextProfile)
+        setForm(profileToForm(nextProfile, session))
       })
   }, [session])
 
   const save = async () => {
     if (!session?.user?.id || saving) return
     setSaving(true)
+    const username = form.username.trim() || fallbackUsername(session)
+    const displayName = form.displayName.trim() || username
+    const payload = {
+      id: session.user.id,
+      email: session.user.email,
+      username,
+      display_name: displayName,
+      town: form.town.trim(),
+      state: form.stateRegion.trim(),
+      country: form.country.trim(),
+      local_discovery_enabled: form.localDiscovery,
+    }
+
+    if (isOfflineSession(session)) {
+      const data = saveOfflineProfile({ ...profile, ...payload })
+      setProfile(data)
+      setForm(profileToForm(data, session))
+      setEditing(false)
+      setStatus('Profile saved!')
+      setTimeout(() => setStatus(''), 3000)
+      setSaving(false)
+      return
+    }
+
     const { data, error } = await supabase.from('profiles')
-      .update({
-        username:               form.username.trim(),
-        display_name:           form.displayName.trim(),
-        town:                   form.town.trim(),
-        state:                  form.stateRegion.trim(),
-        country:                form.country.trim(),
-        local_discovery_enabled: form.localDiscovery,
-      })
-      .eq('id', session.user.id).select().single()
+      .upsert(payload, { onConflict: 'id' })
+      .select()
+      .maybeSingle()
 
     if (error) {
       setStatus('⚠️ Save failed — ' + error.message)
     } else {
-      setProfile(data)
+      await supabase.auth.updateUser({ data: { username, display_name: displayName } }).catch(() => {})
+      setProfile(data || { ...profile, ...payload })
+      setForm(profileToForm(data || payload, session))
       setEditing(false)
       setStatus('✓ Profile saved!')
       setTimeout(() => setStatus(''), 3000)

@@ -215,6 +215,7 @@ function initGame() {
     turn: 'player',
     drawnCard: null,      // card drawn this turn (may or may not be playable)
     drawPending: 0,       // how many cards the next player must draw
+    turnToken: 0,         // advances when action cards keep the same turn active
     unoCallout: false,    // player said UNO
     over: false, winner: null,
     log: top ? [`Game started! First card: ${top.color} ${dispOf(top.value)}`] : [],
@@ -280,6 +281,7 @@ function applyPlayCard(gs, card, byPlayer, chosenColor) {
     turn: nextTurn, drawPending: 0,
     drawnCard: null, unoCallout: false,
     over, winner,
+    turnToken: (gs.turnToken || 0) + 1,
     log: [msg, ...log].slice(0, 14),
   };
 }
@@ -348,20 +350,21 @@ export default function UnoRush(props) {
     setGs(prev => {
       let d = [...prev.deck];
       if (!d.length) d = shuffle([...prev.pile.slice(0,-1)]);
-      if (!d.length) return { ...prev, turn:'ai' };
+      if (!d.length) return { ...prev, turn:'ai', turnToken: (prev.turnToken || 0) + 1 };
       const card = d.pop();
       const playable = canPlay(card, prev.pile[prev.pile.length-1], prev.activeColor);
       return {
         ...prev, deck:d,
         playerHand: [...prev.playerHand, card],
         drawnCard: { card, playable },
+        turnToken: (prev.turnToken || 0) + 1,
         log: [`🧑 You drew ${card.color||'WILD'} ${dispOf(card.value)||'Wild'}${playable?' — playable!':' — no match'}`, ...prev.log].slice(0,14),
       };
     });
   };
 
   const handleKeepDrawn = () => {
-    setGs(prev => ({ ...prev, drawnCard: null, turn: 'ai' }));
+    setGs(prev => ({ ...prev, drawnCard: null, turn: 'ai', turnToken: (prev.turnToken || 0) + 1 }));
   };
 
   const handlePlayDrawn = () => {
@@ -427,7 +430,7 @@ export default function UnoRush(props) {
       });
     }, 1000);
     return () => { clearTimeout(t); animRef.current=false; setAiThinking(false); };
-  }, [gs.turn, gs.over]);
+  }, [gs.turn, gs.over, gs.turnToken]);
 
   const playableCards = gs.playerHand.filter(c => canPlay(c, topCard, activeColor));
   const canDraw = gs.turn === 'player' && !gs.over && !gs.drawnCard && !aiThinking;
