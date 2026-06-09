@@ -30,6 +30,7 @@ export default function ProfilePage({ session, navigate }) {
   })
   const [status, setStatus]     = useState('')
   const [saving, setSaving]     = useState(false)
+  const [discoverySaving, setDiscoverySaving] = useState(false)
 
   useEffect(() => {
     if (!session?.user?.id) return
@@ -105,6 +106,47 @@ export default function ProfilePage({ session, navigate }) {
     setSaving(false)
   }
 
+  const toggleDiscovery = async () => {
+    if (!session?.user?.id || discoverySaving) return
+    const next = !profile?.local_discovery_enabled
+    setDiscoverySaving(true)
+
+    if (isOfflineSession(session)) {
+      const data = saveOfflineProfile({ ...profile, local_discovery_enabled: next })
+      setProfile(data)
+      setForm(f => ({ ...f, localDiscovery: next }))
+      setStatus(next ? 'Discovery is on.' : 'Discovery is off.')
+      setTimeout(() => setStatus(''), 2500)
+      setDiscoverySaving(false)
+      return
+    }
+
+    const { data, error } = await supabase.from('profiles')
+      .upsert({
+        ...profile,
+        id: session.user.id,
+        email: session.user.email,
+        username: profile?.username || fallbackUsername(session),
+        display_name: profile?.display_name || profile?.username || fallbackUsername(session),
+        local_discovery_enabled: next,
+        is_online: true,
+        last_seen: new Date().toISOString(),
+      }, { onConflict: 'id' })
+      .select()
+      .maybeSingle()
+
+    if (error) {
+      setStatus('Discovery update failed - ' + error.message)
+    } else {
+      const updated = data || { ...profile, local_discovery_enabled: next }
+      setProfile(updated)
+      setForm(profileToForm(updated, session))
+      setStatus(next ? 'Discovery is on.' : 'Discovery is off.')
+      setTimeout(() => setStatus(''), 2500)
+    }
+    setDiscoverySaving(false)
+  }
+
   const pts  = profile?.points || 0
   const { crowns, level, crownProgress, ptsIntoCrown } = deriveStats(pts)
   const wins     = profile?.wins   || 0
@@ -165,6 +207,19 @@ export default function ProfilePage({ session, navigate }) {
             <p style={{ margin: '4px 0 0', fontSize: 11, color: profile.local_discovery_enabled ? '#4caf50' : '#666' }}>
               {profile.local_discovery_enabled ? '🟢 Local Discovery: On' : '⚫ Local Discovery: Off'}
             </p>
+            <button
+              onClick={toggleDiscovery}
+              disabled={discoverySaving}
+              style={{
+                marginTop: 10, padding: '7px 14px', borderRadius: 8,
+                background: profile.local_discovery_enabled ? 'rgba(76,175,80,.12)' : 'rgba(255,255,255,.05)',
+                border: profile.local_discovery_enabled ? '1px solid rgba(76,175,80,.35)' : '1px solid rgba(255,255,255,.14)',
+                color: profile.local_discovery_enabled ? '#4caf50' : '#cfcfcf',
+                fontSize: 13, cursor: discoverySaving ? 'default' : 'pointer',
+                opacity: discoverySaving ? 0.65 : 1,
+              }}>
+              {discoverySaving ? 'Updating...' : profile.local_discovery_enabled ? 'Hide me from players' : 'Show me to players'}
+            </button>
             {!editing && (
               <button
                 style={{
