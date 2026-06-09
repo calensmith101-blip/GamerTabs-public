@@ -1,0 +1,1272 @@
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #030305;
+  --bg2: #09090b;
+  --panel: #111113;
+  --panel2: #18181b;
+  --red: #991b1b;
+  --red2: #dc2626;
+  --red3: #ef4444;
+  --darkred: #450a0a;
+  --text: #f4f4f5;
+  --muted: #a1a1aa;
+  --border: rgba(153, 27, 27, 0.75);
+  --gold: #dc2626;
+  --panel-bg: #111113;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+  background:
+    radial-gradient(circle at top left, rgba(153, 27, 27, 0.42), transparent 30%),
+    radial-gradient(circle at top right, rgba(6, 78, 59, 0.16), transparent 24%),
+    linear-gradient(135deg, #030305, #09090b, #1c0f0f);
+  color: var(--text);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+button {
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  border-radius: 14px;
+  padding: 0.65rem 1rem;
+  background: linear-gradient(135deg, #18181b, #450a0a);
+  color: white;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+button:hover {
+  background: linear-gradient(135deg, #7f1d1d, #dc2626);
+  transform: translateY(-2px);
+  box-shadow: 0 0 18px rgba(220, 38, 38, 0.25);
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  background: #050505;
+  color: white;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.75rem;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--red3);
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.18);
+}
+
+.app,
+.app-root,
+.page,
+.home-page,
+.games-page,
+.setup-page,
+.play-page,
+.profile-page {
+  min-height: 100vh;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 1rem;
+  background:
+    radial-gradient(circle at 15% 10%, rgba(127, 29, 29, 0.18), transparent 24%),
+    linear-gradient(135deg, rgba(3, 7, 18, 0.96), rgba(12, 10, 9, 0.98));
+  color: var(--text);
+}
+
+.panel,
+.card,
+.auth-panel,
+.stats-card,
+.game-card,
+.mode-card,
+.room-action-card,
+.profile-stat,
+.profile-card,
+.nudge-panel,
+.room-card,
+.game-panel,
+.play-card,
+.dashboard-card,
+.scaffold-banner,
+footer {
+  background:
+    radial-gradient(circle at top left, rgba(220, 38, 38, 0.09), transparent 30%),
+    linear-gradient(145deg, rgba(24, 24, 27, 0.96), rgba(9, 9, 11, 0.98));
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  color: var(--text);
+  box-shadow:
+    0 18px 45px rgba(0, 0, 0, 0.55),
+    0 0 22px rgba(127, 29, 29, 0.14);
+}
+
+.page-header,
+.home-header,
+.game-topbar,
+.sectionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid rgba(127, 29, 29, 0.65);
+}
+
+.page-title,
+.logo-title,
+.auth-title,
+.game-title,
+.setup-heading {
+  color: var(--red3);
+  text-shadow: 0 0 12px rgba(220, 38, 38, 0.25);
+}
+
+.logo-sub,
+.auth-subtitle,
+.muted,
+.statusText,
+.helper-text,
+.setup-desc,
+.waiting-msg {
+  color: var(--muted);
+}
+
+.btn-primary,
+.primary,
+.auth-tab.active,
+.cat-tab.active,
+.diff-btn.active,
+.selected,
+.active {
+  background: linear-gradient(135deg, #7f1d1d, #dc2626) !important;
+  color: white !important;
+  border-color: #fca5a5 !important;
+}
+
+.btn-ghost,
+.btn-back {
+  background: transparent;
+  color: #d4d4d8;
+  border: 1px solid rgba(127, 29, 29, 0.65);
+}
+
+.auth-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.auth-panel {
+  padding: 2rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.auth-logo {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.auth-logo-icon {
+  font-size: 2.8rem;
+  filter: drop-shadow(0 0 12px rgba(220, 38, 38, 0.45));
+}
+
+.auth-tabs {
+  display: flex;
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.auth-tab {
+  flex: 1;
+  background: #111113;
+  color: #aaa;
+  border: none;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.auth-message,
+.setup-status.error {
+  color: #f87171;
+}
+
+.home-page,
+.games-page,
+.setup-page,
+.profile-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.home-logo,
+.stats-avatar,
+.profile-name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.city-tycoon-container {
+  display: grid;
+  grid-template-columns: minmax(300px, 1fr) minmax(280px, 360px);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.city-tycoon-board {
+  justify-self: center;
+  width: min(92vw, 700px);
+  aspect-ratio: 1 / 1;
+}
+
+.city-tycoon-ui {
+  display: grid;
+  gap: 1rem;
+}
+
+.city-tycoon-buildbar {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.city-tycoon-buildbar-note {
+  color: #a5a5af;
+  font-size: 0.9rem;
+}
+
+.city-tycoon-property-item-meta {
+  color: #8f8fa2;
+  font-size: 0.82rem;
+  margin-top: 0.2rem;
+}
+
+.city-tycoon-cash {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.city-tycoon-cash-item {
+  padding: 1rem;
+  border: 1px solid rgba(220, 38, 38, 0.24);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.city-tycoon-subtext {
+  color: #a5a5af;
+  font-size: 0.85rem;
+  margin-top: 0.3rem;
+}
+
+.city-tycoon-dice {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.95rem;
+}
+
+.city-tycoon-die {
+  min-width: 48px;
+  padding: 0.8rem;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  text-align: center;
+  font-weight: 700;
+}
+
+.city-tycoon-action-row {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.city-tycoon-property-groups {
+  display: grid;
+  gap: 1rem;
+}
+
+.city-tycoon-property-card {
+  padding: 1rem;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.city-tycoon-property-card-header {
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+.city-tycoon-property-group {
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.city-tycoon-property-group-label {
+  padding: 0.55rem 0.85rem;
+  font-size: 0.88rem;
+  color: white;
+  font-weight: 700;
+}
+
+.city-tycoon-property-group ul {
+  list-style: none;
+  margin: 0;
+  padding: 0.8rem 0.9rem;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.city-tycoon-property-list-item {
+  font-size: 0.92rem;
+  color: #e5e7eb;
+}
+
+.city-tycoon-property-empty {
+  color: #a5a5af;
+  font-size: 0.95rem;
+}
+
+.city-tycoon-phase {
+  margin-bottom: 0.75rem;
+  font-weight: 700;
+}
+
+@media (max-width: 860px) {
+  .city-tycoon-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+.logo-icon,
+.avatar-icon,
+.profile-avatar-icon {
+  font-size: 2.5rem;
+}
+
+.home-nav {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.8rem;
+}
+
+.home-nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  justify-content: center;
+}
+
+.stats-card {
+  padding: 1.2rem;
+}
+
+.stats-grid,
+.profile-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  gap: 0.7rem;
+}
+
+.stat-item,
+.profile-stat {
+  text-align: center;
+  padding: 0.8rem;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(153, 27, 27, 0.55);
+  border-radius: 12px;
+}
+
+.stat-value,
+.ps-val {
+  display: block;
+  color: white;
+  font-weight: 800;
+  font-size: 1.35rem;
+}
+
+.stat-label,
+.ps-lbl {
+  color: var(--muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+.crown-progress-bar,
+.profile-crown-bar,
+.bar,
+.progress {
+  height: 8px;
+  background: #27272a;
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.crown-progress-fill,
+.profile-crown-fill,
+.bar i,
+.progress-fill {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #dc2626, #f59e0b);
+}
+
+.games-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.category-tabs,
+.filters,
+.buttonGrid,
+.setup-difficulty-row,
+.game-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.cat-tab,
+.pill,
+.chip,
+.badge,
+.mode-chip,
+.room-chip,
+.role-chip {
+  background: rgba(69, 10, 10, 0.92);
+  color: #fecaca;
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  border-radius: 999px;
+  padding: 0.35rem 0.75rem;
+}
+
+.games-grid,
+.gameGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.8rem;
+}
+
+.game-card,
+.gameCard {
+  padding: 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.game-card:hover,
+.gameCard:hover {
+  transform: translateY(-3px);
+  border-color: var(--red3);
+}
+
+.game-card-emoji,
+.gameIcon,
+.bigIcon {
+  font-size: 2rem;
+  filter: drop-shadow(0 0 10px rgba(220, 38, 38, 0.35));
+}
+
+.setup-mode-grid,
+.setup-room-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.8rem;
+}
+
+.mode-card,
+.room-action-card {
+  padding: 1rem;
+  text-align: center;
+  cursor: pointer;
+}
+
+.mode-icon,
+.room-action-icon {
+  font-size: 2rem;
+}
+
+.game-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.1rem;
+}
+
+.game-status {
+  padding: 0.45rem 1rem;
+  background: #111113;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: #fca5a5;
+}
+
+.ttt-board,
+.tttGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+  max-width: 280px;
+  width: 100%;
+}
+
+.ttt-cell,
+.tttGrid button {
+  aspect-ratio: 1;
+  background: linear-gradient(145deg, #18181b, #09090b);
+  border: 2px solid rgba(153, 27, 27, 0.75);
+  border-radius: 12px;
+  font-size: 2.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cf-board,
+.connectGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+  background: linear-gradient(145deg, #111827, #450a0a);
+  padding: 10px;
+  border-radius: 14px;
+  max-width: 390px;
+  width: 100%;
+}
+
+.cf-cell,
+.connectGrid button {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #030305;
+  border: 2px solid #27272a;
+}
+
+.cf-actions {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.cf-end-note {
+  color: #f8fafc;
+  margin-top: 0.5rem;
+  font-size: 0.95rem;
+  text-align: center;
+  opacity: 0.8;
+}
+
+.game-meta {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.room-chip,
+.role-chip {
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: #f8fafc;
+  font-size: 0.85rem;
+}
+
+.cf-cell.red {
+  background: #dc2626;
+}
+
+.cf-cell.yellow {
+  background: #facc15;
+}
+
+.mm-grid,
+.memoryGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  max-width: 360px;
+  width: 100%;
+}
+
+.mm-card,
+.memoryGrid button,
+.seaGrid button,
+.snakeGrid div,
+.board-cell,
+.tile,
+.space,
+.card-tile {
+  background: linear-gradient(145deg, #18181b, #09090b);
+  color: white;
+  border: 1px solid rgba(153, 27, 27, 0.75);
+  border-radius: 10px;
+  box-shadow: inset 0 0 18px rgba(0,0,0,0.5);
+}
+
+.seaGrid,
+.sb-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 4px;
+  max-width: 360px;
+  width: 100%;
+}
+
+.seaGrid button,
+.sb-cell {
+  aspect-ratio: 1;
+}
+
+.snakeGrid,
+.sl-board {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 3px;
+  max-width: 380px;
+  width: 100%;
+}
+
+.snakeGrid div,
+.sl-cell {
+  aspect-ratio: 1;
+  font-size: 0.65rem;
+}
+
+.diceLine,
+.dd-dice-row,
+.rd5-dice-area {
+  display: flex;
+  justify-content: center;
+  gap: 0.6rem;
+  font-size: 2.4rem;
+  flex-wrap: wrap;
+}
+
+.rd5-die,
+.dd-die,
+.city-tycoon-die {
+  background: #111113;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  padding: 1rem 1.2rem;
+  min-width: 72px;
+  min-height: 72px;
+  font-size: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f8f8fc;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
+}
+
+.city-tycoon-layout {
+  display: grid;
+  gap: 1rem;
+}
+
+.city-tycoon-board-area {
+  width: 100%;
+  max-width: 100%;
+}
+
+.city-board-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  display: flex;
+  justify-content: center;
+  padding-bottom: 0.75rem;
+}
+
+.city-tycoon-board-canvas {
+  width: min(1100px, 95vw);
+  min-width: 760px;
+  max-width: 1100px;
+  border-radius: 26px;
+  overflow: hidden;
+  background: #07070c;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.55), inset 0 0 0 1px rgba(220, 38, 38, 0.14);
+  position: relative;
+}
+
+.city-tycoon-board-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,255,255,0.03) 3px, rgba(255,255,255,0.03) 4px);
+}
+
+.city-tycoon-board-canvas svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.city-space-label,
+.bv-space-name {
+  fill: #fff;
+  font-weight: 800;
+  paint-order: stroke;
+  stroke: #000;
+  stroke-width: 0.7px;
+}
+
+.city-space-icon {
+  fill: #fff;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+}
+
+.city-space-price {
+  fill: #f9d976;
+  font-weight: 700;
+  paint-order: stroke;
+  stroke: #000;
+  stroke-width: 0.5px;
+}
+
+.city-district-strip,
+.bv-district-strip {
+  height: 18px;
+  min-height: 18px;
+  border-radius: 4px;
+}
+
+.city-tycoon-top-panel {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(240px, 1fr) minmax(260px, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.city-tycoon-board-area {
+  width: 100%;
+  max-width: 100%;
+}
+
+.city-tycoon-board-extras {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(260px, 1fr);
+  gap: 1rem;
+}
+
+.city-tycoon-dice-card,
+.city-tycoon-ledger-card,
+.city-tycoon-actions-card,
+.city-tycoon-settings-card,
+.city-tycoon-property-card,
+.city-tycoon-purchase-card {
+  padding: 1.1rem;
+  padding: 1.1rem;
+  border-radius: 20px;
+  background: rgba(12, 12, 16, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+}
+
+.city-tycoon-section-header,
+.city-tycoon-player-card-header,
+.city-tycoon-property-card-header,
+.city-tycoon-activity-header {
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #f8f8fc;
+  margin-bottom: 1rem;
+}
+
+.city-tycoon-dice-grid {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.city-tycoon-subtext,
+.city-tycoon-player-label,
+.city-tycoon-property-item-meta,
+.city-tycoon-setting-row span {
+  color: #b8b8c7;
+}
+
+.city-tycoon-setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.65rem 0;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  font-size: 0.95rem;
+}
+
+.city-tycoon-bottom-grid {
+  display: grid;
+  grid-template-columns: minmax(300px, 1.5fr) minmax(280px, 1fr);
+  gap: 1rem;
+}
+
+.city-tycoon-holdings-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.city-tycoon-right-stack {
+  display: grid;
+  gap: 1rem;
+}
+
+.city-tycoon-property-group {
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.city-tycoon-property-group-label {
+  padding: 0.65rem 0.9rem;
+  font-size: 0.9rem;
+  color: white;
+  font-weight: 700;
+}
+
+.city-tycoon-property-group ul {
+  list-style: none;
+  margin: 0;
+  padding: 0.75rem 0.9rem 0.9rem;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.city-tycoon-property-list-item {
+  font-size: 0.96rem;
+  color: #e9e9f0;
+  padding: 0.7rem;
+  border-radius: 12px;
+  transition: background 0.2s ease;
+}
+
+.city-tycoon-property-list-item:hover {
+  background: rgba(255,255,255,0.04);
+}
+
+.city-tycoon-property-empty {
+  color: #a8a8b2;
+  font-size: 0.95rem;
+}
+
+.city-tycoon-action-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.city-tycoon-buildbar {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
+.city-tycoon-buildbar-note {
+  color: #adb0bc;
+  font-size: 0.92rem;
+}
+
+.city-tycoon-phase {
+  margin-top: 0.85rem;
+  font-weight: 700;
+  color: #f8f8fc;
+}
+
+.city-tycoon-activity-panel {
+  padding: 1rem;
+  background: rgba(8, 8, 12, 0.96);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.28);
+}
+
+.city-tycoon-log-entry {
+  color: #dce0ea;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.03);
+}
+
+@media (max-width: 1040px) {
+  .city-tycoon-board-extras,
+  .city-tycoon-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 860px) {
+  .city-tycoon-board-canvas {
+    border-radius: 18px;
+  }
+
+  .city-tycoon-board-overlay {
+    border-radius: 18px;
+  }
+
+  .city-tycoon-action-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.city-tycoon-space,
+.kingdom-conquest-region,
+.mansion-mystery-room,
+.flag-front-cell,
+.colour-clash-pile,
+.colour-clash-card {
+  background: #111113;
+  border: 1px solid var(--border);
+  color: white;
+}
+
+.kingdom-conquest-region.owned-x,
+.city-tycoon-space.owned {
+  background: rgba(153, 27, 27, 0.22);
+  border-color: var(--red3);
+}
+
+.colour-clash-card.red {
+  background: #dc2626;
+}
+
+.colour-clash-card.blue {
+  background: #2563eb;
+}
+
+.colour-clash-card.green {
+  background: #16a34a;
+}
+
+.colour-clash-card.yellow {
+  background: #ca8a04;
+}
+
+.colour-clash-card.wild {
+  background: linear-gradient(45deg, #dc2626, #2563eb, #16a34a, #ca8a04);
+}
+
+.profile-body,
+.setup-body,
+.city-tycoon-ui,
+.colour-clash-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.profile-edit-row,
+.editorRow {
+  display: flex;
+  gap: 0.6rem;
+}
+
+footer {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  color: var(--muted);
+}
+
+@media (max-width: 700px) {
+  .app,
+  .app-root,
+  .page {
+    padding: 0.75rem;
+  }
+
+  .games-grid,
+  .gameGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .setup-mode-grid,
+  .setup-room-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .page-header,
+  .home-header,
+  .game-topbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  h1 {
+    font-size: 1.8rem;
+  }
+
+  .ttt-board,
+  .tttGrid {
+    max-width: 240px;
+  }
+
+  .cf-board,
+  .connectGrid {
+    max-width: 320px;
+  }
+}
+
+.onlineBoard {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(36px, 1fr));
+  gap: 6px;
+  max-width: 560px;
+  margin: 1rem auto;
+}
+
+.onlineCell {
+  min-height: 48px;
+  background: linear-gradient(145deg, #111113, #1f1f22);
+  border: 2px solid rgba(220, 38, 38, 0.55);
+  border-radius: 12px;
+  color: #f8fafc;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.onlineCell:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 18px rgba(220, 38, 38, 0.18);
+}
+
+.flagOnline {
+  padding: 0.75rem;
+  background: radial-gradient(circle at center, rgba(220, 38, 38, 0.08), transparent 35%), linear-gradient(135deg, #0c0c10, #09090c);
+  border: 1px solid rgba(220, 38, 38, 0.2);
+  border-radius: 16px;
+}
+
+.flagCell.selected {
+  border-color: #facc15;
+  box-shadow: 0 0 20px rgba(250, 204, 21, 0.35);
+}
+
+.onlineBoard.chessOnline,
+.onlineBoard.checkersOnline {
+  display: flex;
+  justify-content: center;
+  max-width: 560px;
+  margin: 1rem auto;
+}
+
+.onlineBoard.chessOnline svg,
+.onlineBoard.checkersOnline svg {
+  width: 100%;
+  height: auto;
+}
+
+.flag-front-meta,
+.colour-clash-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.battle-log,
+.colour-clash-panel {
+  background: rgba(17, 17, 19, 0.88);
+  border: 1px solid rgba(220, 38, 38, 0.25);
+  padding: 1rem;
+  border-radius: 16px;
+}
+
+.flag-front-legends {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  color: #f4f4f5;
+}
+
+.topCard,
+.card-count {
+  font-size: 0.98rem;
+  color: #f8fafc;
+  margin-bottom: 0.75rem;
+}
+
+.cardHandOnline {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  gap: 0.75rem;
+}
+
+.colour-clash-panel {
+  min-width: 260px;
+}
+
+.colour-clash-card {
+  min-height: 108px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: white;
+  padding: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  text-align: center;
+  box-shadow: inset 0 0 14px rgba(0, 0, 0, 0.35);
+}
+
+.colour-clash-card span {
+  display: block;
+}
+
+.colour-clash-card.red {
+  background: linear-gradient(145deg, #991b1b, #dc2626);
+}
+
+.colour-clash-card.blue {
+  background: linear-gradient(145deg, #1d4ed8, #3b82f6);
+}
+
+.colour-clash-card.green {
+  background: linear-gradient(145deg, #166534, #22c55e);
+}
+
+.colour-clash-card.yellow {
+  background: linear-gradient(145deg, #b45309, #f59e0b);
+}
+
+.colour-clash-card.wild {
+  background: linear-gradient(45deg, #dc2626, #2563eb, #16a34a, #f59e0b);
+}
+
+.card-value {
+  font-size: 1.15rem;
+  font-weight: 900;
+}
+
+.card-color {
+  font-size: 0.9rem;
+  opacity: 0.95;
+}
+
+@media (max-width: 700px) {
+  .onlineBoard {
+    grid-template-columns: repeat(4, minmax(48px, 1fr));
+  }
+}
+
+/* === ChatGPT stability patch: room/chat layout === */
+.play-page { padding-bottom: 2rem !important; overflow-x: hidden; }
+.play-layout-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+  gap: 1rem;
+  align-items: start;
+}
+.play-main-panel { min-width: 0; }
+.game-side-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  position: sticky;
+  top: 1rem;
+  max-height: calc(100vh - 2rem);
+  overflow: auto;
+}
+.safe-chat,
+.chat-window {
+  background: rgba(15, 23, 42, 0.96);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 16px 30px rgba(0,0,0,.35);
+  min-height: 260px;
+  max-height: 360px;
+  display: flex;
+  flex-direction: column;
+}
+.chat-header {
+  display: flex;
+  justify-content: space-between;
+  gap: .75rem;
+  align-items: center;
+  padding: .7rem .85rem;
+  background: rgba(2, 6, 23, .95);
+  border-bottom: 1px solid rgba(239, 68, 68, .22);
+  color: #fff;
+}
+.chat-header span { color: #fca5a5; font-size: .8rem; letter-spacing: .08em; }
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: .75rem;
+  display: flex;
+  flex-direction: column;
+  gap: .55rem;
+  min-height: 130px;
+  overscroll-behavior: contain;
+}
+.chat-message { align-self: flex-start; max-width: 86%; }
+.chat-message.mine { align-self: flex-end; text-align: right; }
+.chat-message-text {
+  background: rgba(51, 65, 85, .9);
+  color: #e5e7eb;
+  padding: .55rem .7rem;
+  border-radius: 12px;
+  font-size: .9rem;
+}
+.chat-message.mine .chat-message-text { background: linear-gradient(135deg, #7f1d1d, #dc2626); color: white; }
+.chat-message small { color: #94a3b8; font-size: .68rem; }
+.chat-form { display: flex; gap: .4rem; padding: .6rem; border-top: 1px solid rgba(239,68,68,.2); background: rgba(2,6,23,.85); }
+.chat-form input { min-width: 0; flex: 1; }
+.chat-form button { min-width: 44px; display: inline-flex; align-items: center; justify-content: center; }
+.chat-empty, .chat-status { color: #cbd5e1; font-size: .85rem; margin: 0; }
+.chat-status { padding: 0 .75rem .5rem; color: #fca5a5; }
+
+@media (max-width: 980px) {
+  .play-layout-grid { grid-template-columns: 1fr; }
+  .game-side-panel { position: static; max-height: none; overflow: visible; }
+  .safe-chat, .chat-window { max-height: 300px; }
+}
+
+/* Bigger readable Snakes & Ladders / Connect Four polish */
+.sl-board { width: min(96vw, 720px) !important; max-width: 720px !important; margin: 0 auto; position: relative; }
+.sl-cell { min-height: clamp(38px, 7vw, 70px); font-weight: 700; }
+.sl-num { font-size: clamp(.58rem, 1.2vw, .85rem) !important; color: #f8fafc !important; text-shadow: 0 1px 4px #000; }
+.sl-token { font-size: clamp(.8rem, 1.8vw, 1.2rem) !important; filter: drop-shadow(0 0 6px rgba(255,255,255,.35)); }
+.sl-marker { font-size: clamp(.75rem, 1.7vw, 1.15rem) !important; }
+.cf-board { width: min(96vw, 560px) !important; max-width: 560px !important; }
+.cf-cell { min-height: clamp(42px, 8vw, 72px); }

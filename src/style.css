@@ -1,0 +1,2653 @@
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #030305;
+  --bg2: #09090b;
+  --panel: #111113;
+  --panel2: #18181b;
+  --red: #991b1b;
+  --red2: #dc2626;
+  --red3: #ef4444;
+  --darkred: #450a0a;
+  --text: #f4f4f5;
+  --muted: #a1a1aa;
+  --border: rgba(153, 27, 27, 0.75);
+  --gold: #dc2626;
+  --panel-bg: #111113;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+  background:
+    radial-gradient(circle at top left, rgba(153, 27, 27, 0.42), transparent 30%),
+    radial-gradient(circle at top right, rgba(6, 78, 59, 0.16), transparent 24%),
+    linear-gradient(135deg, #030305, #09090b, #1c0f0f);
+  color: var(--text);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+button {
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  border-radius: 14px;
+  padding: 0.65rem 1rem;
+  background: linear-gradient(135deg, #18181b, #450a0a);
+  color: white;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+button:hover {
+  background: linear-gradient(135deg, #7f1d1d, #dc2626);
+  transform: translateY(-2px);
+  box-shadow: 0 0 18px rgba(220, 38, 38, 0.25);
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  background: #050505;
+  color: white;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.75rem;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--red3);
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.18);
+}
+
+.app,
+.app-root,
+.page,
+.home-page,
+.games-page,
+.setup-page,
+.play-page,
+.profile-page {
+  min-height: 100vh;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 1rem;
+  background:
+    radial-gradient(circle at 15% 10%, rgba(127, 29, 29, 0.18), transparent 24%),
+    linear-gradient(135deg, rgba(3, 7, 18, 0.96), rgba(12, 10, 9, 0.98));
+  color: var(--text);
+}
+
+.panel,
+.card,
+.auth-panel,
+.stats-card,
+.game-card,
+.mode-card,
+.room-action-card,
+.profile-stat,
+.profile-card,
+.nudge-panel,
+.room-card,
+.game-panel,
+.play-card,
+.dashboard-card,
+.scaffold-banner,
+footer {
+  background:
+    radial-gradient(circle at top left, rgba(220, 38, 38, 0.09), transparent 30%),
+    linear-gradient(145deg, rgba(24, 24, 27, 0.96), rgba(9, 9, 11, 0.98));
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  color: var(--text);
+  box-shadow:
+    0 18px 45px rgba(0, 0, 0, 0.55),
+    0 0 22px rgba(127, 29, 29, 0.14);
+}
+
+.page-header,
+.home-header,
+.game-topbar,
+.sectionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid rgba(127, 29, 29, 0.65);
+}
+
+.page-title,
+.logo-title,
+.auth-title,
+.game-title,
+.setup-heading {
+  color: var(--red3);
+  text-shadow: 0 0 12px rgba(220, 38, 38, 0.25);
+}
+
+.logo-sub,
+.auth-subtitle,
+.muted,
+.statusText,
+.helper-text,
+.setup-desc,
+.waiting-msg {
+  color: var(--muted);
+}
+
+.btn-primary,
+.primary,
+.auth-tab.active,
+.cat-tab.active,
+.diff-btn.active,
+.selected,
+.active {
+  background: linear-gradient(135deg, #7f1d1d, #dc2626) !important;
+  color: white !important;
+  border-color: #fca5a5 !important;
+}
+
+.btn-ghost,
+.btn-back {
+  background: transparent;
+  color: #d4d4d8;
+  border: 1px solid rgba(127, 29, 29, 0.65);
+}
+
+.auth-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.auth-panel {
+  padding: 2rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.auth-logo {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.auth-logo-icon {
+  font-size: 2.8rem;
+  filter: drop-shadow(0 0 12px rgba(220, 38, 38, 0.45));
+}
+
+.auth-tabs {
+  display: flex;
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.auth-tab {
+  flex: 1;
+  background: #111113;
+  color: #aaa;
+  border: none;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.auth-message,
+.setup-status.error {
+  color: #f87171;
+}
+
+.home-page,
+.games-page,
+.setup-page,
+.profile-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.home-logo,
+.stats-avatar,
+.profile-name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.city-tycoon-container {
+  display: grid;
+  grid-template-columns: minmax(300px, 1fr) minmax(280px, 360px);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.city-tycoon-board {
+  justify-self: center;
+  width: min(92vw, 700px);
+  aspect-ratio: 1 / 1;
+}
+
+.city-tycoon-ui {
+  display: grid;
+  gap: 1rem;
+}
+
+.city-tycoon-buildbar {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.city-tycoon-buildbar-note {
+  color: #a5a5af;
+  font-size: 0.9rem;
+}
+
+.city-tycoon-property-item-meta {
+  color: #8f8fa2;
+  font-size: 0.82rem;
+  margin-top: 0.2rem;
+}
+
+.city-tycoon-cash {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.city-tycoon-cash-item {
+  padding: 1rem;
+  border: 1px solid rgba(220, 38, 38, 0.24);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.city-tycoon-subtext {
+  color: #a5a5af;
+  font-size: 0.85rem;
+  margin-top: 0.3rem;
+}
+
+.city-tycoon-dice {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.95rem;
+}
+
+.city-tycoon-die {
+  min-width: 48px;
+  padding: 0.8rem;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  text-align: center;
+  font-weight: 700;
+}
+
+.city-tycoon-action-row {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.city-tycoon-property-groups {
+  display: grid;
+  gap: 1rem;
+}
+
+.city-tycoon-property-card {
+  padding: 1rem;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.city-tycoon-property-card-header {
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+.city-tycoon-property-group {
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.city-tycoon-property-group-label {
+  padding: 0.55rem 0.85rem;
+  font-size: 0.88rem;
+  color: white;
+  font-weight: 700;
+}
+
+.city-tycoon-property-group ul {
+  list-style: none;
+  margin: 0;
+  padding: 0.8rem 0.9rem;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.city-tycoon-property-list-item {
+  font-size: 0.92rem;
+  color: #e5e7eb;
+}
+
+.city-tycoon-property-empty {
+  color: #a5a5af;
+  font-size: 0.95rem;
+}
+
+.city-tycoon-phase {
+  margin-bottom: 0.75rem;
+  font-weight: 700;
+}
+
+@media (max-width: 860px) {
+  .city-tycoon-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+.logo-icon,
+.avatar-icon,
+.profile-avatar-icon {
+  font-size: 2.5rem;
+}
+
+.home-nav {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.8rem;
+}
+
+.home-nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  justify-content: center;
+}
+
+.stats-card {
+  padding: 1.2rem;
+}
+
+.stats-grid,
+.profile-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  gap: 0.7rem;
+}
+
+.stat-item,
+.profile-stat {
+  text-align: center;
+  padding: 0.8rem;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(153, 27, 27, 0.55);
+  border-radius: 12px;
+}
+
+.stat-value,
+.ps-val {
+  display: block;
+  color: white;
+  font-weight: 800;
+  font-size: 1.35rem;
+}
+
+.stat-label,
+.ps-lbl {
+  color: var(--muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+.crown-progress-bar,
+.profile-crown-bar,
+.bar,
+.progress {
+  height: 8px;
+  background: #27272a;
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.crown-progress-fill,
+.profile-crown-fill,
+.bar i,
+.progress-fill {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #dc2626, #f59e0b);
+}
+
+.games-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.category-tabs,
+.filters,
+.buttonGrid,
+.setup-difficulty-row,
+.game-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.cat-tab,
+.pill,
+.chip,
+.badge,
+.mode-chip,
+.room-chip,
+.role-chip {
+  background: rgba(69, 10, 10, 0.92);
+  color: #fecaca;
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  border-radius: 999px;
+  padding: 0.35rem 0.75rem;
+}
+
+.games-grid,
+.gameGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.8rem;
+}
+
+.game-card,
+.gameCard {
+  padding: 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.game-card:hover,
+.gameCard:hover {
+  transform: translateY(-3px);
+  border-color: var(--red3);
+}
+
+.game-card-emoji,
+.gameIcon,
+.bigIcon {
+  font-size: 2rem;
+  filter: drop-shadow(0 0 10px rgba(220, 38, 38, 0.35));
+}
+
+.setup-mode-grid,
+.setup-room-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.8rem;
+}
+
+.mode-card,
+.room-action-card {
+  padding: 1rem;
+  text-align: center;
+  cursor: pointer;
+}
+
+.mode-icon,
+.room-action-icon {
+  font-size: 2rem;
+}
+
+.game-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.1rem;
+}
+
+.game-status {
+  padding: 0.45rem 1rem;
+  background: #111113;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: #fca5a5;
+}
+
+.ttt-board,
+.tttGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+  max-width: 280px;
+  width: 100%;
+}
+
+.ttt-cell,
+.tttGrid button {
+  aspect-ratio: 1;
+  background: linear-gradient(145deg, #18181b, #09090b);
+  border: 2px solid rgba(153, 27, 27, 0.75);
+  border-radius: 12px;
+  font-size: 2.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cf-board,
+.connectGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+  background: linear-gradient(145deg, #111827, #450a0a);
+  padding: 10px;
+  border-radius: 14px;
+  max-width: 390px;
+  width: 100%;
+}
+
+.cf-cell,
+.connectGrid button {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #030305;
+  border: 2px solid #27272a;
+}
+
+.cf-actions {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.cf-end-note {
+  color: #f8fafc;
+  margin-top: 0.5rem;
+  font-size: 0.95rem;
+  text-align: center;
+  opacity: 0.8;
+}
+
+.game-meta {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.room-chip,
+.role-chip {
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: #f8fafc;
+  font-size: 0.85rem;
+}
+
+.cf-cell.red {
+  background: #dc2626;
+}
+
+.cf-cell.yellow {
+  background: #facc15;
+}
+
+.mm-grid,
+.memoryGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  max-width: 360px;
+  width: 100%;
+}
+
+.mm-card,
+.memoryGrid button,
+.seaGrid button,
+.snakeGrid div,
+.board-cell,
+.tile,
+.space,
+.card-tile {
+  background: linear-gradient(145deg, #18181b, #09090b);
+  color: white;
+  border: 1px solid rgba(153, 27, 27, 0.75);
+  border-radius: 10px;
+  box-shadow: inset 0 0 18px rgba(0,0,0,0.5);
+}
+
+.seaGrid,
+.sb-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 4px;
+  max-width: 360px;
+  width: 100%;
+}
+
+.seaGrid button,
+.sb-cell {
+  aspect-ratio: 1;
+}
+
+.snakeGrid,
+.sl-board {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 3px;
+  max-width: 380px;
+  width: 100%;
+}
+
+.snakeGrid div,
+.sl-cell {
+  aspect-ratio: 1;
+  font-size: 0.65rem;
+}
+
+.diceLine,
+.dd-dice-row,
+.rd5-dice-area {
+  display: flex;
+  justify-content: center;
+  gap: 0.6rem;
+  font-size: 2.4rem;
+  flex-wrap: wrap;
+}
+
+.rd5-die,
+.dd-die,
+.city-tycoon-die {
+  background: #111113;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  padding: 1rem 1.2rem;
+  min-width: 72px;
+  min-height: 72px;
+  font-size: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f8f8fc;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
+}
+
+.city-tycoon-layout {
+  display: grid;
+  gap: 1rem;
+}
+
+.city-tycoon-board-area {
+  width: 100%;
+  max-width: 100%;
+}
+
+.city-board-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  display: flex;
+  justify-content: center;
+  padding-bottom: 0.75rem;
+}
+
+.city-tycoon-board-canvas {
+  width: min(1100px, 95vw);
+  min-width: 760px;
+  max-width: 1100px;
+  border-radius: 26px;
+  overflow: hidden;
+  background: #07070c;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.55), inset 0 0 0 1px rgba(220, 38, 38, 0.14);
+  position: relative;
+}
+
+.city-tycoon-board-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,255,255,0.03) 3px, rgba(255,255,255,0.03) 4px);
+}
+
+.city-tycoon-board-canvas svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.city-space-label,
+.bv-space-name {
+  fill: #fff;
+  font-weight: 800;
+  paint-order: stroke;
+  stroke: #000;
+  stroke-width: 0.7px;
+}
+
+.city-space-icon {
+  fill: #fff;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+}
+
+.city-space-price {
+  fill: #f9d976;
+  font-weight: 700;
+  paint-order: stroke;
+  stroke: #000;
+  stroke-width: 0.5px;
+}
+
+.city-district-strip,
+.bv-district-strip {
+  height: 18px;
+  min-height: 18px;
+  border-radius: 4px;
+}
+
+.city-tycoon-top-panel {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(240px, 1fr) minmax(260px, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.city-tycoon-board-area {
+  width: 100%;
+  max-width: 100%;
+}
+
+.city-tycoon-board-extras {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(260px, 1fr);
+  gap: 1rem;
+}
+
+.city-tycoon-dice-card,
+.city-tycoon-ledger-card,
+.city-tycoon-actions-card,
+.city-tycoon-settings-card,
+.city-tycoon-property-card,
+.city-tycoon-purchase-card {
+  padding: 1.1rem;
+  padding: 1.1rem;
+  border-radius: 20px;
+  background: rgba(12, 12, 16, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+}
+
+.city-tycoon-section-header,
+.city-tycoon-player-card-header,
+.city-tycoon-property-card-header,
+.city-tycoon-activity-header {
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #f8f8fc;
+  margin-bottom: 1rem;
+}
+
+.city-tycoon-dice-grid {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.city-tycoon-subtext,
+.city-tycoon-player-label,
+.city-tycoon-property-item-meta,
+.city-tycoon-setting-row span {
+  color: #b8b8c7;
+}
+
+.city-tycoon-setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.65rem 0;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  font-size: 0.95rem;
+}
+
+.city-tycoon-bottom-grid {
+  display: grid;
+  grid-template-columns: minmax(300px, 1.5fr) minmax(280px, 1fr);
+  gap: 1rem;
+}
+
+.city-tycoon-holdings-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.city-tycoon-right-stack {
+  display: grid;
+  gap: 1rem;
+}
+
+.city-tycoon-property-group {
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.city-tycoon-property-group-label {
+  padding: 0.65rem 0.9rem;
+  font-size: 0.9rem;
+  color: white;
+  font-weight: 700;
+}
+
+.city-tycoon-property-group ul {
+  list-style: none;
+  margin: 0;
+  padding: 0.75rem 0.9rem 0.9rem;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.city-tycoon-property-list-item {
+  font-size: 0.96rem;
+  color: #e9e9f0;
+  padding: 0.7rem;
+  border-radius: 12px;
+  transition: background 0.2s ease;
+}
+
+.city-tycoon-property-list-item:hover {
+  background: rgba(255,255,255,0.04);
+}
+
+.city-tycoon-property-empty {
+  color: #a8a8b2;
+  font-size: 0.95rem;
+}
+
+.city-tycoon-action-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.city-tycoon-buildbar {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
+.city-tycoon-buildbar-note {
+  color: #adb0bc;
+  font-size: 0.92rem;
+}
+
+.city-tycoon-phase {
+  margin-top: 0.85rem;
+  font-weight: 700;
+  color: #f8f8fc;
+}
+
+.city-tycoon-activity-panel {
+  padding: 1rem;
+  background: rgba(8, 8, 12, 0.96);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.28);
+}
+
+.city-tycoon-log-entry {
+  color: #dce0ea;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.03);
+}
+
+@media (max-width: 1040px) {
+  .city-tycoon-board-extras,
+  .city-tycoon-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 860px) {
+  .city-tycoon-board-canvas {
+    border-radius: 18px;
+  }
+
+  .city-tycoon-board-overlay {
+    border-radius: 18px;
+  }
+
+  .city-tycoon-action-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.city-tycoon-space,
+.kingdom-conquest-region,
+.mansion-mystery-room,
+.flag-front-cell,
+.colour-clash-pile,
+.colour-clash-card {
+  background: #111113;
+  border: 1px solid var(--border);
+  color: white;
+}
+
+.kingdom-conquest-region.owned-x,
+.city-tycoon-space.owned {
+  background: rgba(153, 27, 27, 0.22);
+  border-color: var(--red3);
+}
+
+.colour-clash-card.red {
+  background: #dc2626;
+}
+
+.colour-clash-card.blue {
+  background: #2563eb;
+}
+
+.colour-clash-card.green {
+  background: #16a34a;
+}
+
+.colour-clash-card.yellow {
+  background: #ca8a04;
+}
+
+.colour-clash-card.wild {
+  background: linear-gradient(45deg, #dc2626, #2563eb, #16a34a, #ca8a04);
+}
+
+.profile-body,
+.setup-body,
+.city-tycoon-ui,
+.colour-clash-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.profile-edit-row,
+.editorRow {
+  display: flex;
+  gap: 0.6rem;
+}
+
+footer {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  color: var(--muted);
+}
+
+@media (max-width: 700px) {
+  .app,
+  .app-root,
+  .page {
+    padding: 0.75rem;
+  }
+
+  .games-grid,
+  .gameGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .setup-mode-grid,
+  .setup-room-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .page-header,
+  .home-header,
+  .game-topbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  h1 {
+    font-size: 1.8rem;
+  }
+
+  .ttt-board,
+  .tttGrid {
+    max-width: 240px;
+  }
+
+  .cf-board,
+  .connectGrid {
+    max-width: 320px;
+  }
+}
+
+.onlineBoard {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(36px, 1fr));
+  gap: 6px;
+  max-width: 560px;
+  margin: 1rem auto;
+}
+
+.onlineCell {
+  min-height: 48px;
+  background: linear-gradient(145deg, #111113, #1f1f22);
+  border: 2px solid rgba(220, 38, 38, 0.55);
+  border-radius: 12px;
+  color: #f8fafc;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.onlineCell:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 18px rgba(220, 38, 38, 0.18);
+}
+
+.flagOnline {
+  padding: 0.75rem;
+  background: radial-gradient(circle at center, rgba(220, 38, 38, 0.08), transparent 35%), linear-gradient(135deg, #0c0c10, #09090c);
+  border: 1px solid rgba(220, 38, 38, 0.2);
+  border-radius: 16px;
+}
+
+.flagCell.selected {
+  border-color: #facc15;
+  box-shadow: 0 0 20px rgba(250, 204, 21, 0.35);
+}
+
+.onlineBoard.chessOnline,
+.onlineBoard.checkersOnline {
+  display: flex;
+  justify-content: center;
+  max-width: 560px;
+  margin: 1rem auto;
+}
+
+.onlineBoard.chessOnline svg,
+.onlineBoard.checkersOnline svg {
+  width: 100%;
+  height: auto;
+}
+
+.flag-front-meta,
+.colour-clash-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.battle-log,
+.colour-clash-panel {
+  background: rgba(17, 17, 19, 0.88);
+  border: 1px solid rgba(220, 38, 38, 0.25);
+  padding: 1rem;
+  border-radius: 16px;
+}
+
+.flag-front-legends {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  color: #f4f4f5;
+}
+
+.topCard,
+.card-count {
+  font-size: 0.98rem;
+  color: #f8fafc;
+  margin-bottom: 0.75rem;
+}
+
+.cardHandOnline {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  gap: 0.75rem;
+}
+
+.colour-clash-panel {
+  min-width: 260px;
+}
+
+.colour-clash-card {
+  min-height: 108px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: white;
+  padding: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  text-align: center;
+  box-shadow: inset 0 0 14px rgba(0, 0, 0, 0.35);
+}
+
+.colour-clash-card span {
+  display: block;
+}
+
+.colour-clash-card.red {
+  background: linear-gradient(145deg, #991b1b, #dc2626);
+}
+
+.colour-clash-card.blue {
+  background: linear-gradient(145deg, #1d4ed8, #3b82f6);
+}
+
+.colour-clash-card.green {
+  background: linear-gradient(145deg, #166534, #22c55e);
+}
+
+.colour-clash-card.yellow {
+  background: linear-gradient(145deg, #b45309, #f59e0b);
+}
+
+.colour-clash-card.wild {
+  background: linear-gradient(45deg, #dc2626, #2563eb, #16a34a, #f59e0b);
+}
+
+.card-value {
+  font-size: 1.15rem;
+  font-weight: 900;
+}
+
+.card-color {
+  font-size: 0.9rem;
+  opacity: 0.95;
+}
+@media (max-width: 700px) {
+  .onlineBoard {
+    grid-template-columns: repeat(4, minmax(48px, 1fr));
+  }
+/* --- BV Design Tokens ----------------------------------------- */
+:root {
+  --bv-bg:       #0a0a0f;
+  --bv-surface:  #12121e;
+  --bv-card-bg:  #1a1a2e;
+  --bv-bdr:      #2a2a4a;
+  --bv-accent:   #e8b800;
+  --bv-red:      #c0392b;
+  --bv-blue:     #2980b9;
+  --bv-green:    #27ae60;
+  --bv-purple:   #7c6af7;
+  --bv-txt:      #e0e0e0;
+  --bv-muted:    #888;
+}
+
+/* --- Game Shell ------------------------------------------------ */
+.game-shell {
+  background: var(--bv-bg);
+  color: var(--bv-txt);
+  font-family: 'Inter', system-ui, sans-serif;
+  padding: 12px 10px 40px;
+  box-sizing: border-box;
+  min-height: 100%;
+  /* Prevent layout jumps */
+  contain: layout style;
+}
+
+/* --- Game Header ---------------------------------------------- */
+.game-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--bv-bdr);
+}
+.bv-title {
+  color: var(--bv-accent);
+  font-size: 1.15rem;
+  font-weight: 900;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+/* --- BV Button ------------------------------------------------ */
+.bv-button {
+  background: rgba(232,184,0,.1);
+  color: var(--bv-accent);
+  border: 1px solid rgba(232,184,0,.3);
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: .8rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  cursor: pointer;
+  transition: background .15s, transform .1s;
+  white-space: nowrap;
+  user-select: none;
+}
+.bv-button:hover:not(:disabled) {
+  background: rgba(232,184,0,.22);
+  transform: translateY(-1px);
+}
+.bv-button:active { transform: none; }
+.bv-button:disabled { opacity: .4; cursor: not-allowed; transform: none !important; }
+.bv-button.secondary {
+  background: transparent;
+  color: var(--bv-muted);
+  border-color: #333;
+}
+.bv-button.secondary:hover:not(:disabled) {
+  background: rgba(255,255,255,.05);
+  color: var(--bv-txt);
+}
+
+/* --- BV Card -------------------------------------------------- */
+.bv-card {
+  background: var(--bv-card-bg);
+  border: 1px solid var(--bv-bdr);
+  border-radius: 10px;
+}
+
+/* --- Turn Indicator / Winner Banner --------------------------- */
+.turn-indicator {
+  text-align: center;
+  font-size: .85rem;
+  color: var(--bv-muted);
+  padding: 5px 0 8px;
+  min-height: 28px;
+}
+.winner-banner {
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--bv-accent);
+  background: rgba(232,184,0,.08);
+  border: 1px solid rgba(232,184,0,.35);
+  border-radius: 10px;
+  padding: 10px 16px;
+  margin-bottom: 10px;
+  animation: bv-pop .35s ease;
+}
+@keyframes bv-pop {
+  0%  { transform: scale(.9); opacity:0; }
+  65% { transform: scale(1.04); }
+  100%{ transform: scale(1);   opacity:1; }
+}
+
+/* --- BV Notice ------------------------------------------------ */
+.bv-notice {
+  background: rgba(124,106,247,.1);
+  border: 1px solid rgba(124,106,247,.3);
+  border-radius: 7px;
+  color: #a78bfa;
+  font-size: .78rem;
+  padding: 5px 12px;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+/* --- Game Board Container ------------------------------------- */
+.game-board {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  margin: 6px 0;
+  /* Prevent scroll jumps when board updates */
+  overflow: hidden;
+}
+
+/* --- Game Panel (sidebar/info) -------------------------------- */
+.game-panel {
+  background: var(--bv-card-bg);
+  border: 1px solid var(--bv-bdr);
+  border-radius: 10px;
+  padding: 12px;
+}
+.game-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 10px 0;
+}
+
+/* --- HTP (How To Play) Overlay -------------------------------- */
+.htp-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.88);
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.htp-box {
+  background: #0f0f1a;
+  border: 1px solid var(--bv-accent);
+  border-radius: 14px;
+  padding: 22px;
+  max-width: 460px;
+  width: 100%;
+  max-height: 82vh;
+  overflow-y: auto;
+}
+.htp-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.htp-title { color: var(--bv-accent); font-weight: 900; font-size: 1rem; margin: 0; }
+.htp-body { color: #c0c0c0; font-size: .85rem; line-height: 1.65; }
+.htp-body h4 { color: var(--bv-txt); margin: 10px 0 4px; font-size: .9rem; }
+.htp-body ul { margin: 4px 0; padding-left: 18px; }
+.htp-body li { margin-bottom: 3px; }
+
+/* --- Prevent board scroll-jump during state updates ----------- */
+.game-shell * { contain: none; }
+.game-board > * {
+  flex-shrink: 0;
+}
+
+/* --- Mobile --------------------------------------------------- */
+@media (max-width: 520px) {
+  .bv-title { font-size: .95rem; }
+  .bv-button { padding: 5px 10px; font-size: .75rem; }
+  .game-header { gap: 6px; }
+}
+
+/* --- Stable board sizing for all games ----------------------- */
+.connect-four-board,
+.reversi-grid,
+.chess-grid,
+.checkers-grid,
+.sb-dual-grids {
+  touch-action: manipulation;
+  user-select: none;
+}
+}
+
+
+.offline-banner {
+  margin: 0;
+  padding: 10px 14px;
+  background: rgba(127, 29, 29, 0.9);
+  color: #fff5f5;
+  text-align: center;
+  font-size: 0.92rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.auth-offline-btn {
+  margin-top: 10px;
+  background: rgba(255,255,255,0.08);
+}
+
+.home-nav-btn:disabled,
+.btn-primary:disabled,
+.btn-secondary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+/* ══════════════════════════════════════════════════════════════════════════
+   BLACK VAULT — style.css APPEND BLOCK
+   Append this entire block to the bottom of src/style.css.
+   Provides: .game-shell, .bv-button, .game-header, .bv-title, .bv-card,
+             .htp-overlay, .winner-banner, .turn-indicator, chat, scaffold,
+             city-tycoon board canvas, play-layout-grid, offline banner.
+   All game components depend on these classes.
+══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Game shell wrapper ────────────────────────────────────────────────── */
+.game-shell {
+  padding: 12px 10px 32px;
+  color: #e0e0e0;
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  min-height: 60vh;
+}
+
+/* ── Game header bar ───────────────────────────────────────────────────── */
+.game-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(200, 16, 16, .2);
+}
+
+/* ── Game title ────────────────────────────────────────────────────────── */
+.bv-title {
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: #e8b800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  margin: 0;
+  text-shadow: 0 0 12px rgba(232, 184, 0, .35);
+}
+
+/* ── Primary / secondary buttons ───────────────────────────────────────── */
+.bv-button {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid rgba(200, 16, 16, .5);
+  background: rgba(139, 0, 0, .2);
+  color: #e8b800;
+  letter-spacing: 0.04em;
+  transition: background .15s, box-shadow .15s, transform .1s;
+  white-space: nowrap;
+}
+.bv-button:hover:not(:disabled) {
+  background: rgba(200, 16, 16, .3);
+  box-shadow: 0 0 10px rgba(200, 16, 16, .4);
+  transform: translateY(-1px);
+}
+.bv-button:active:not(:disabled) { transform: translateY(0) scale(.97); }
+.bv-button:disabled { opacity: .4; cursor: default; }
+
+.bv-button.secondary {
+  background: rgba(255, 255, 255, .05);
+  border-color: rgba(255, 255, 255, .12);
+  color: #a0a0b8;
+}
+.bv-button.secondary:hover:not(:disabled) {
+  background: rgba(255, 255, 255, .09);
+  box-shadow: none;
+  color: #e0e0e0;
+}
+
+/* ── Card ──────────────────────────────────────────────────────────────── */
+.bv-card {
+  background: linear-gradient(160deg, #14141d 0%, #0c0c12 60%, #14141d 100%);
+  border: 1px solid rgba(200, 16, 16, .22);
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.5);
+}
+
+/* ── Notice / info bar ─────────────────────────────────────────────────── */
+.bv-notice {
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: rgba(200, 16, 16, .08);
+  border: 1px solid rgba(200, 16, 16, .22);
+  font-size: 13px;
+  color: #a0a0b8;
+  margin-bottom: 10px;
+}
+
+/* ── Winner banner ─────────────────────────────────────────────────────── */
+.winner-banner {
+  padding: 12px 18px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(232,184,0,.15), rgba(232,184,0,.06));
+  border: 1px solid rgba(232, 184, 0, .4);
+  font-weight: 700;
+  font-size: 15px;
+  color: #e8b800;
+  text-align: center;
+  margin-bottom: 12px;
+  text-shadow: 0 0 10px rgba(232,184,0,.3);
+  animation: bv-slide-up .3s ease both;
+}
+
+/* ── Turn indicator ────────────────────────────────────────────────────── */
+.turn-indicator {
+  padding: 7px 14px;
+  border-radius: 8px;
+  background: rgba(200, 16, 16, .1);
+  border: 1px solid rgba(200, 16, 16, .22);
+  font-size: 13px;
+  color: #e0e0e0;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+/* ── How To Play (HTP) overlay ─────────────────────────────────────────── */
+.htp-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, .78);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.htp-box {
+  background: linear-gradient(160deg, #14141d, #0a0a12);
+  border: 1px solid rgba(200, 16, 16, .35);
+  border-radius: 14px;
+  max-width: 480px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 0 40px rgba(200, 16, 16, .2), 0 20px 60px rgba(0,0,0,.8);
+}
+
+.htp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(200, 16, 16, .2);
+  position: sticky;
+  top: 0;
+  background: #14141d;
+  border-radius: 14px 14px 0 0;
+  z-index: 1;
+}
+
+.htp-title {
+  font-weight: 700;
+  font-size: 14px;
+  color: #e8b800;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.htp-body {
+  padding: 16px 18px;
+  font-size: 13px;
+  color: #a0a0b8;
+  line-height: 1.65;
+}
+.htp-body h4 {
+  color: #e8b800;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 14px 0 6px;
+}
+.htp-body p   { margin: 0 0 10px; }
+.htp-body ul  { margin: 0 0 10px; padding-left: 18px; }
+.htp-body li  { margin-bottom: 4px; }
+.htp-body b   { color: #e0e0e0; }
+
+/* ── Game board + panel layout ─────────────────────────────────────────── */
+.game-board   { position: relative; }
+.game-panel   { display: flex; flex-direction: column; gap: 10px; }
+.game-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+/* ── Play layout (GamePlayPage main+side grid) ─────────────────────────── */
+.play-layout-grid {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 16px;
+  align-items: flex-start;
+}
+.play-main-panel  { min-width: 0; }
+.game-side-panel  { display: flex; flex-direction: column; gap: 12px; }
+@media (max-width: 860px) {
+  .play-layout-grid { grid-template-columns: 1fr; }
+  .game-side-panel  { display: none; }
+}
+
+/* ── Loading state ─────────────────────────────────────────────────────── */
+.loading-block {
+  padding: 40px;
+  text-align: center;
+  color: #555;
+  font-size: 14px;
+}
+
+/* ── Auth wrapper ──────────────────────────────────────────────────────── */
+.auth-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #09090e;
+}
+
+/* ── Chat window ───────────────────────────────────────────────────────── */
+.chat-window {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  background: linear-gradient(160deg, #14141d, #0c0c12);
+  border: 1px solid rgba(200, 16, 16, .22);
+  border-radius: 12px;
+  overflow: hidden;
+  min-height: 260px;
+  max-height: 340px;
+}
+.chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 9px 14px;
+  background: rgba(200, 16, 16, .1);
+  border-bottom: 1px solid rgba(200, 16, 16, .18);
+  font-size: 12px;
+  font-weight: 700;
+  color: #e8b800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.chat-header span {
+  font-size: 10px;
+  color: #555;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+}
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(200,16,16,.3) transparent;
+}
+.chat-empty {
+  color: #555;
+  font-size: 12px;
+  text-align: center;
+  padding: 16px 0;
+  margin: 0;
+}
+.chat-message {
+  max-width: 88%;
+  align-self: flex-start;
+}
+.chat-message.mine { align-self: flex-end; }
+.chat-message-text {
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 10px 10px 10px 3px;
+  padding: 6px 10px;
+  font-size: 13px;
+  color: #e0e0e0;
+  line-height: 1.4;
+  word-break: break-word;
+}
+.chat-message.mine .chat-message-text {
+  background: rgba(200,16,16,.15);
+  border-color: rgba(200,16,16,.25);
+  border-radius: 10px 10px 3px 10px;
+}
+.chat-message small {
+  font-size: 10px;
+  color: #555;
+  padding: 2px 4px;
+  display: block;
+}
+.chat-status {
+  font-size: 11px;
+  color: #555;
+  text-align: center;
+  padding: 4px 12px;
+  border-top: 1px solid rgba(255,255,255,.05);
+  margin: 0;
+}
+.chat-form {
+  display: flex;
+  border-top: 1px solid rgba(200,16,16,.15);
+}
+.chat-form input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 10px 12px;
+  font-size: 13px;
+  color: #e0e0e0;
+  font-family: inherit;
+}
+.chat-form input::placeholder { color: #444; }
+.chat-form button {
+  padding: 10px 14px;
+  background: rgba(200,16,16,.15);
+  border: none;
+  border-left: 1px solid rgba(200,16,16,.15);
+  cursor: pointer;
+  color: #e8b800;
+  transition: background .15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.chat-form button:hover:not(:disabled) { background: rgba(200,16,16,.28); }
+.chat-form button:disabled { opacity: .3; cursor: default; }
+
+/* ── Scaffold game ─────────────────────────────────────────────────────── */
+.scaffold-banner {
+  background: rgba(200,16,16,.08);
+  border: 1px solid rgba(200,16,16,.2);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 12px;
+  color: #e8b800;
+  text-align: center;
+  margin-bottom: 14px;
+}
+.scaffold-board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  max-width: 320px;
+  margin: 0 auto 16px;
+}
+.scaffold-cell {
+  aspect-ratio: 1;
+  border-radius: 8px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.1);
+  font-size: 28px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: background .15s;
+  color: #e0e0e0;
+}
+.scaffold-cell:hover:not(:disabled) { background: rgba(200,16,16,.15); }
+.scaffold-cell.x { color: #dc2626; }
+.scaffold-cell.o { color: #2563eb; }
+
+/* ── City Tycoon board canvas ──────────────────────────────────────────── */
+.city-tycoon-board-canvas {
+  width: 100%;
+  max-width: 680px;
+  margin: 0 auto;
+  position: relative;
+  background: #050508;
+  border: 2px solid rgba(200, 16, 16, .45);
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 0 40px rgba(200,16,16,.12), 0 20px 60px rgba(0,0,0,.8);
+}
+.city-tycoon-board-overlay {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg, transparent, transparent 3px,
+    rgba(0,0,0,.04) 3px, rgba(0,0,0,.04) 4px
+  );
+  pointer-events: none;
+  z-index: 2;
+}
+.city-tycoon-board-canvas svg { display: block; width: 100%; height: auto; }
+
+/* SVG text classes for City Tycoon board */
+.city-space-label { fill: rgba(220,220,230,.75); font-family: 'Courier New',monospace; }
+.city-space-icon  { fill: #e0e0e0; }
+.city-space-price { fill: #c9a227; }
+.city-district-strip { opacity: .85; }
+
+/* ── Connection status ─────────────────────────────────────────────────── */
+.connection-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  display: inline-block;
+}
+.connection-dot.online  { background: #4caf50; box-shadow: 0 0 6px #4caf50; }
+.connection-dot.offline { background: #f44336; }
+
+/* ── Offline banner (fixed top) ────────────────────────────────────────── */
+.bv-offline-banner {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 10000;
+  background: linear-gradient(90deg, #2a1a00, #3a2800);
+  border-bottom: 2px solid rgba(232,184,0,.5);
+  padding: 7px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #e8b800;
+}
+
+/* ── Profile page ──────────────────────────────────────────────────────── */
+.profile-page { max-width: 480px; margin: 0 auto; padding: 16px 10px 60px; }
+.profile-body { display: flex; flex-direction: column; gap: 0; }
+.page-header {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 16px;
+}
+.page-title { font-size: 18px; font-weight: 700; color: #e8b800; margin: 0; }
+.btn-back {
+  background: transparent; border: none; cursor: pointer;
+  color: #888; font-size: 14px; padding: 4px 8px;
+  transition: color .15s;
+}
+.btn-back:hover { color: #e0e0e0; }
+
+/* ── Nudge FAB ─────────────────────────────────────────────────────────── */
+.nudge-fab {
+  position: fixed; bottom: 24px; right: 20px; z-index: 900;
+  width: 52px; height: 52px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #ff6666, #aa0000);
+  border: 2px solid rgba(255,255,255,.2);
+  font-size: 22px; cursor: pointer;
+  box-shadow: 0 0 16px rgba(200,0,0,.5), 0 4px 12px rgba(0,0,0,.5);
+  transition: transform .2s, box-shadow .2s;
+  display: flex; align-items: center; justify-content: center;
+}
+.nudge-fab:hover { transform: scale(1.1); box-shadow: 0 0 24px rgba(200,0,0,.7), 0 4px 16px rgba(0,0,0,.5); }
+.nudge-fab-badge {
+  position: absolute; top: -4px; right: -4px;
+  background: #e8b800; color: #000;
+  border-radius: 50%; width: 18px; height: 18px;
+  font-size: 10px; font-weight: 900;
+  display: flex; align-items: center; justify-content: center;
+}
+.nudge-overlay {
+  position: fixed; inset: 0; z-index: 950;
+  background: rgba(0,0,0,.7);
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+
+/* ── Page base ─────────────────────────────────────────────────────────── */
+.page { min-height: 100vh; padding: 0 0 80px; }
+.play-page { background: #09090e; }
+.pb-20 { padding-bottom: 80px; }
+.empty-state { text-align: center; color: #555; font-size: 14px; padding: 40px; }
+.game-loading { text-align: center; color: #555; font-size: 14px; padding: 40px; }
+
+/* ── Keyframe used in winner-banner ─────────────────────────────────────── */
+@keyframes bv-slide-up {
+  from { transform: translateY(12px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+/* ── Responsive clamp ──────────────────────────────────────────────────── */
+@media (max-width: 500px) {
+  .bv-button  { font-size: 12px; padding: 7px 12px; }
+  .bv-title   { font-size: 1.05rem; }
+  .htp-box    { max-height: 90vh; }
+  .game-shell { padding: 8px 6px 24px; }
+}
+
+/* === GamerTab friends hub + mobile board repair === */
+.friends-hub-page .games-grid {
+  align-items: stretch;
+}
+
+.friends-hub-page .game-card {
+  text-align: left;
+}
+
+/* City Tycoon: keep the whole board recoverable on phones. The board itself
+   scales to the viewport, while the wrapper allows pan/scroll if a device or
+   browser zoom still clips it. */
+.city-tycoon-mobile-board-wrap,
+.city-tycoon-board-scroll {
+  width: 100%;
+  max-width: 100%;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-x pan-y pinch-zoom;
+  padding: 6px 6px 12px;
+}
+
+.city-tycoon-board-canvas {
+  width: min(96vw, 760px) !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  aspect-ratio: 1 / 1;
+  margin: 0 auto !important;
+  overflow: visible !important;
+}
+
+.city-tycoon-board-canvas svg {
+  width: 100% !important;
+  height: auto !important;
+  display: block !important;
+}
+
+@media (max-width: 560px) {
+  .city-tycoon-board-canvas {
+    width: min(94vw, 430px) !important;
+  }
+}
+
+/* Clean universal play mode selector */
+.clean-play-setup .setup-section {
+  max-width: 980px;
+  margin: 14px auto;
+}
+.clean-mode-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+  gap: 12px;
+}
+.clean-mode-card {
+  min-height: 138px;
+  border-radius: 18px;
+  border: 1px solid rgba(232,184,0,.22);
+  background: linear-gradient(180deg, rgba(24,24,36,.96), rgba(10,10,16,.96));
+  color: #f3f3f3;
+  padding: 16px 12px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+  box-shadow: 0 12px 28px rgba(0,0,0,.28);
+}
+.clean-mode-card:hover:not(:disabled) {
+  transform: translateY(-2px);
+  border-color: rgba(232,184,0,.55);
+  background: linear-gradient(180deg, rgba(38,32,20,.98), rgba(13,13,18,.98));
+}
+.clean-mode-card:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+.clean-seat-panel {
+  margin: 14px 0;
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,.09);
+  background: rgba(255,255,255,.035);
+}
+.clean-seat-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 10px 0;
+  color: #ddd;
+  font-size: 13px;
+}
+.clean-chip-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.slot-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 12px;
+}
+.slot-pill {
+  padding: 6px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06);
+  color: #ddd;
+  font-size: 12px;
+}
+.slot-pill.ai { border-color: rgba(93,173,226,.35); color: #9bd7ff; }
+.slot-pill.local { border-color: rgba(88,214,141,.35); color: #a8ffc9; }
+.slot-pill.open { opacity: .65; }
+.clean-room-toggle,
+.clean-room-actions,
+.join-inline {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.clean-room-actions { margin-top: 14px; }
+.join-inline { flex: 1; min-width: 240px; }
+.join-inline .room-code-input { flex: 1; min-width: 130px; }
+@media (max-width: 640px) {
+  .clean-seat-row { align-items: flex-start; flex-direction: column; }
+  .clean-chip-row { justify-content: flex-start; }
+  .clean-room-actions, .join-inline { flex-direction: column; align-items: stretch; }
+}
+
+/* Clean 5-mode + simplified rooms/users patch */
+.game-card-modes.full-five {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 10px;
+}
+.game-card-modes.full-five .mode-dot {
+  width: auto;
+  height: auto;
+  border-radius: 999px;
+  padding: 4px 7px;
+  font-size: 10px;
+  line-height: 1;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.10);
+  color: #d9d9d9;
+}
+.clean-play-setup .clean-mode-grid {
+  grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+}
+.clean-mode-card {
+  text-align: left;
+  min-height: 118px;
+}
+.simple-player-finder,
+.clean-social-panel {
+  display: grid;
+  gap: 12px;
+}
+.finder-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+.finder-filters {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.simple-player-list,
+.clean-room-list {
+  display: grid;
+  gap: 10px;
+}
+.simple-player-row,
+.clean-room-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  border-radius: 14px;
+  background: rgba(255,255,255,.045);
+  border: 1px solid rgba(255,255,255,.09);
+}
+.simple-player-main,
+.clean-room-main {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.simple-player-main b,
+.clean-room-main b { color: #f2f2f2; }
+.simple-player-main span,
+.clean-room-main span { color: #9ca3af; font-size: 12px; }
+.simple-player-main small,
+.clean-room-main small { color: #e8b800; font-size: 11px; }
+.clean-room-actions-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-end;
+}
+.clean-quick-room {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 8px;
+  align-items: center;
+}
+.clean-join-room {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  margin-top: 10px;
+}
+@media (max-width: 640px) {
+  .finder-toolbar,
+  .finder-filters,
+  .clean-quick-room,
+  .clean-join-room,
+  .simple-player-row,
+  .clean-room-row {
+    grid-template-columns: 1fr;
+  }
+  .clean-room-actions-bar { justify-content: stretch; }
+  .clean-room-actions-bar button,
+  .finder-toolbar button,
+  .simple-player-row button { width: 100%; }
+}
+
+/* Hidden Vault casino lobby + mobile landscape machine fix */
+.vault-page {
+  max-width: 1180px;
+  margin: 0 auto;
+}
+.vault-card {
+  background: rgba(255,255,255,.055);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 18px;
+  padding: 16px;
+  color: #f5f5f5;
+  box-shadow: 0 12px 30px rgba(0,0,0,.28);
+}
+.vault-lobby-header {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto auto;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.vault-lobby-header h2 { margin: 0; }
+.vault-lobby-header p { margin: 4px 0 0; color: #aaa; }
+.vault-wallet {
+  cursor: pointer;
+  border: 1px solid rgba(250,204,21,.55);
+  background: linear-gradient(180deg,#fde047,#92400e);
+  color: #111;
+  font-weight: 950;
+  padding: 12px 14px;
+  border-radius: 14px;
+  box-shadow: 0 0 22px rgba(250,204,21,.25);
+}
+.vault-cashier { margin: 12px 0 16px; }
+.vault-row,
+.vault-pack-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.vault-row input {
+  flex: 1;
+  min-width: 160px;
+  background: #0b0b0b;
+  color: #fff;
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+.vault-section-title { color: #e8b800; margin: 18px 0 10px; }
+.vault-lobby-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+.vault-machine-tile {
+  min-height: 152px;
+  border: 2px solid color-mix(in srgb, var(--glow, #e8b800), transparent 20%);
+  border-radius: 20px;
+  color: #fff;
+  padding: 14px;
+  text-align: left;
+  display: grid;
+  align-content: end;
+  gap: 4px;
+  box-shadow: inset 0 0 38px rgba(0,0,0,.62), 0 12px 30px rgba(0,0,0,.35);
+}
+.vault-machine-tile.table { background: linear-gradient(135deg,#061a12,#14532d); border-color: rgba(34,197,94,.45); }
+.vault-machine-icon { font-size: 42px; line-height: 1; }
+.vault-machine-tile b { font-size: 20px; }
+.vault-machine-tile small { color: rgba(255,255,255,.82); }
+.vault-disclaimer { color: #999; font-size: 12px; margin-top: 14px; }
+
+.casino-play-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  width: 100vw;
+  height: 100dvh;
+  overflow: hidden;
+  color: #fff;
+  padding: 8px;
+  display: grid;
+  grid-template-rows: auto minmax(0,1fr);
+  box-sizing: border-box;
+  background: #050505;
+}
+.casino-topbar {
+  display: grid;
+  grid-template-columns: auto minmax(0,1fr) auto;
+  gap: 8px;
+  align-items: center;
+  background: rgba(0,0,0,.62);
+  border: 1px solid rgba(255,255,255,.13);
+  border-radius: 14px;
+  padding: 6px;
+  min-height: 44px;
+}
+.casino-topbar b { text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.casino-topbar span { font-weight: 950; color: #fde047; }
+.casino-machine-body {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0,1fr) auto auto auto;
+  gap: 7px;
+  padding: 7px;
+  border: 4px solid rgba(253,224,71,.45);
+  border-radius: 18px;
+  background: rgba(0,0,0,.28);
+  box-shadow: inset 0 0 46px rgba(0,0,0,.72), 0 0 30px color-mix(in srgb, var(--machine-glow, #facc15), transparent 55%);
+}
+.casino-machine-title { text-align: center; }
+.casino-machine-title h2 { margin: 0; font-size: clamp(18px, 4vw, 34px); text-shadow: 0 3px 12px #000; }
+.casino-machine-title p { margin: 2px 0 0; color: rgba(255,255,255,.82); font-size: 12px; }
+.casino-reel-window {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0,1fr));
+  gap: clamp(4px, 1vw, 10px);
+  padding: clamp(6px, 1vw, 12px);
+  border-radius: 18px;
+  background: linear-gradient(180deg,#050505,#1f1300);
+  border: 4px solid rgba(253,224,71,.58);
+  box-shadow: inset 0 0 36px rgba(0,0,0,.85);
+}
+.casino-reel {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: repeat(3, minmax(0,1fr));
+  gap: clamp(4px, .8vw, 8px);
+}
+.casino-reel.spinning { filter: blur(.7px); }
+.casino-symbol {
+  min-height: 0;
+  border-radius: clamp(8px, 1.6vw, 16px);
+  display: grid;
+  place-items: center;
+  font-size: clamp(20px, 6vh, 48px);
+  font-weight: 950;
+  color: #111827;
+  background: linear-gradient(180deg,#fffaf0,#fde68a 48%,#f59e0b);
+  border: 2px solid rgba(255,255,255,.65);
+  box-shadow: inset 0 0 14px rgba(255,255,255,.35), 0 6px 12px rgba(0,0,0,.3);
+}
+.casino-symbol.special { background: radial-gradient(circle,#fef9c3,#facc15 45%,#92400e); }
+.casino-meters {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+.casino-meters span {
+  background: rgba(0,0,0,.58);
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 10px;
+  padding: 5px;
+  text-align: center;
+  font-size: 10px;
+  color: #ddd;
+}
+.casino-meters b { color: #fde047; font-size: clamp(14px, 2.5vw, 22px); }
+.casino-message {
+  min-height: 28px;
+  display: grid;
+  place-items: center;
+  background: rgba(0,0,0,.45);
+  border-radius: 10px;
+  padding: 5px 8px;
+  color: #fff;
+  font-weight: 850;
+  text-align: center;
+  font-size: 13px;
+}
+.casino-button-deck {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+}
+.casino-button-deck .bv-button { min-height: 40px; }
+.bv-button.spin-main {
+  font-size: 18px;
+  min-width: 120px;
+  background: linear-gradient(180deg,#fde047,#b45309);
+  color: #111;
+}
+.bv-button.active { outline: 3px solid #22c55e; }
+.table-play { place-items: stretch; }
+.casino-table-card { max-width: 780px; margin: 20px auto; width: min(95vw, 780px); }
+@media (orientation: portrait) and (max-width: 900px) {
+  .casino-play-fullscreen::before {
+    content: 'Turn phone sideways for full pokie cabinet view';
+    position: fixed;
+    left: 50%; top: 50%; transform: translate(-50%,-50%);
+    z-index: 1002;
+    background: rgba(0,0,0,.86);
+    border: 1px solid rgba(253,224,71,.6);
+    color: #fde047;
+    padding: 12px 16px;
+    border-radius: 14px;
+    text-align: center;
+    font-weight: 900;
+    pointer-events: none;
+  }
+}
+@media (max-height: 460px) and (orientation: landscape) {
+  .casino-play-fullscreen { padding: 4px; }
+  .casino-topbar { min-height: 34px; font-size: 12px; }
+  .casino-topbar .bv-button { padding: 6px 9px; min-height: 30px; }
+  .casino-machine-body { gap: 4px; padding: 4px; border-width: 3px; }
+  .casino-machine-title h2 { font-size: 20px; }
+  .casino-machine-title p { display: none; }
+  .casino-reel-window { padding: 5px; border-width: 3px; }
+  .casino-symbol { font-size: clamp(18px, 12vh, 42px); border-radius: 8px; }
+  .casino-meters span { padding: 3px; font-size: 9px; }
+  .casino-message { min-height: 24px; font-size: 11px; }
+  .casino-button-deck .bv-button { min-height: 30px; padding: 5px 9px; font-size: 11px; }
+  .bv-button.spin-main { min-width: 88px; font-size: 14px; }
+}
+@media (max-width: 720px) {
+  .vault-lobby-header { grid-template-columns: 1fr; }
+  .vault-wallet { text-align: center; }
+}
+
+/* === Game tweak repair: City Tycoon landscape + casino table fit === */
+.city-tycoon-fit {
+  width: 100%;
+  max-width: 100vw !important;
+  overflow-x: hidden;
+}
+.city-tycoon-play-layout {
+  width: 100%;
+}
+.city-tycoon-main-board {
+  min-width: 0 !important;
+}
+.city-tycoon-side-panel {
+  min-width: 240px;
+}
+@media (orientation: landscape) and (max-height: 620px) {
+  .city-tycoon-fit {
+    padding: 4px !important;
+  }
+  .city-tycoon-fit .game-header {
+    margin-bottom: 6px;
+  }
+  .city-tycoon-fit .bv-card,
+  .city-tycoon-fit .bv-notice,
+  .city-tycoon-fit .turn-indicator {
+    padding: 7px !important;
+    margin-bottom: 6px !important;
+    font-size: 12px;
+  }
+  .city-tycoon-play-layout {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(230px, 300px);
+    gap: 8px !important;
+    align-items: start !important;
+  }
+  .city-tycoon-main-board {
+    min-width: 0 !important;
+  }
+  .city-tycoon-main-board .city-tycoon-board-canvas {
+    width: min(calc(100vh - 86px), calc(100vw - 320px), 620px) !important;
+    max-width: 100% !important;
+  }
+  .city-tycoon-side-panel {
+    flex: none !important;
+    max-height: calc(100vh - 92px);
+    overflow: auto;
+    padding-right: 2px;
+  }
+}
+@media (orientation: landscape) and (max-width: 820px) {
+  .city-tycoon-play-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(210px, 260px) !important;
+  }
+  .city-tycoon-main-board .city-tycoon-board-canvas {
+    width: min(calc(100vh - 80px), calc(100vw - 280px), 520px) !important;
+  }
+  .city-tycoon-side-panel {
+    font-size: 11px;
+  }
+  .city-tycoon-side-panel .bv-button {
+    min-height: 28px;
+    padding: 5px 8px;
+    font-size: 11px !important;
+  }
+}
+
+.table-play {
+  overflow: auto !important;
+  padding: 6px !important;
+}
+.table-play .casino-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+.casino-table-card {
+  width: min(96vw, 920px) !important;
+  max-width: 920px !important;
+  margin: 8px auto !important;
+  max-height: calc(100dvh - 68px);
+  overflow: auto;
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  .table-play {
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+  .casino-table-card {
+    margin: 4px auto !important;
+    padding: 10px !important;
+    max-height: calc(100dvh - 48px);
+  }
+  .casino-table-card h2 {
+    margin: 0 0 6px;
+    font-size: 20px;
+  }
+  .casino-table-card p {
+    margin: 5px 0;
+    font-size: 12px;
+  }
+  .casino-table-card input {
+    min-height: 30px;
+  }
+}
+.blackjack-game-shell {
+  width: 100%;
+  overflow-x: hidden;
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  .blackjack-game-shell {
+    padding: 4px !important;
+  }
+  .blackjack-game-shell .game-header {
+    margin-bottom: 6px;
+  }
+  .blackjack-game-shell .bj-table {
+    padding: 8px;
+  }
+  .blackjack-game-shell .bj-card {
+    width: 42px;
+    height: 58px;
+    font-size: 12px;
+  }
+.blackjack-game-shell .bj-hand {
+    min-height: 62px;
+  }
+}
+
+/* === Fullscreen landscape game shell + rebuilt casino tables === */
+.game-landscape-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  width: 100vw;
+  height: 100dvh;
+  overflow: auto;
+  padding: 6px !important;
+  box-sizing: border-box;
+  background: radial-gradient(circle at top, #221006, #050505 58%);
+}
+.game-landscape-fullscreen > div:first-child {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  border-radius: 12px;
+}
+.game-landscape-fullscreen .play-layout-grid {
+  display: block !important;
+  width: 100%;
+  max-width: none;
+}
+.game-landscape-fullscreen .play-main-panel {
+  width: 100%;
+  max-width: none;
+}
+.game-landscape-fullscreen .game-shell,
+.game-landscape-fullscreen .game-container {
+  max-width: none !important;
+  min-height: calc(100dvh - 62px);
+}
+.game-landscape-fullscreen button,
+.game-landscape-fullscreen input,
+.game-landscape-fullscreen select {
+  min-height: 38px;
+}
+.casino-table-layout {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  gap: 10px;
+  width: min(98vw, 1040px) !important;
+  max-width: 1040px !important;
+  min-height: calc(100dvh - 64px);
+  margin: 8px auto !important;
+  background: radial-gradient(circle at center, rgba(12,86,51,.98), rgba(2,31,20,.98) 70%) !important;
+  border: 2px solid rgba(253,224,71,.42) !important;
+}
+.casino-table-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.casino-table-head h2 {
+  margin: 0;
+  font-size: clamp(24px, 4vw, 42px);
+}
+.casino-bet-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #fde047;
+  font-weight: 900;
+}
+.casino-bet-control input {
+  width: 130px;
+  min-height: 46px;
+  border-radius: 10px;
+  border: 1px solid rgba(253,224,71,.45);
+  background: rgba(0,0,0,.42);
+  color: #fff;
+  font-size: 20px;
+  font-weight: 900;
+  padding: 8px 10px;
+}
+.casino-table-grid {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.casino-table-grid.texas-grid {
+  grid-template-columns: minmax(230px, .8fr) minmax(0, 1.2fr);
+}
+.casino-hand-panel {
+  min-width: 0;
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 16px;
+  background: rgba(0,0,0,.24);
+  padding: 12px;
+}
+.casino-hand-panel h3 {
+  margin: 0 0 10px;
+  display: flex;
+  justify-content: space-between;
+  color: #fde047;
+}
+.casino-card-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  min-height: 96px;
+}
+.casino-card {
+  width: clamp(48px, 8vw, 74px);
+  aspect-ratio: 5 / 7;
+  border-radius: 10px;
+  background: linear-gradient(180deg,#fff,#e5e7eb);
+  color: #111827;
+  border: 2px solid rgba(255,255,255,.8);
+  display: grid;
+  place-items: center;
+  font-weight: 950;
+  box-shadow: 0 8px 18px rgba(0,0,0,.35);
+}
+.casino-card b { font-size: clamp(18px, 3vw, 26px); line-height: 1; }
+.casino-card span { font-size: clamp(18px, 3vw, 28px); line-height: 1; }
+.casino-card.red { color: #b91c1c; }
+.casino-card.back {
+  background: linear-gradient(135deg,#111827,#312e81);
+  color: #fde047;
+  font-size: 28px;
+}
+.casino-empty-cards {
+  color: rgba(255,255,255,.68);
+  font-weight: 800;
+}
+.casino-table-result {
+  margin: 0;
+  min-height: 34px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  color: #fff;
+  font-weight: 950;
+  font-size: clamp(16px, 2.5vw, 24px);
+}
+.table-play .casino-button-deck .bv-button {
+  min-width: 112px;
+  min-height: 48px;
+  font-size: 17px;
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  .game-landscape-fullscreen { padding: 4px !important; }
+  .game-landscape-fullscreen > div:first-child { font-size: 12px; }
+  .casino-table-layout {
+    min-height: calc(100dvh - 44px);
+    gap: 6px;
+    padding: 8px !important;
+  }
+  .casino-table-head h2 { font-size: 22px; }
+  .casino-bet-control input { min-height: 34px; font-size: 16px; }
+  .casino-hand-panel { padding: 8px; }
+  .casino-card-row { min-height: 70px; gap: 6px; }
+  .casino-card { width: clamp(40px, 7vw, 56px); }
+  .table-play .casino-button-deck .bv-button {
+    min-height: 34px;
+    min-width: 86px;
+    font-size: 13px;
+  }
+}
+@media (max-width: 720px) and (orientation: portrait) {
+  .casino-table-grid,
+  .casino-table-grid.texas-grid {
+    grid-template-columns: 1fr;
+  }
+}

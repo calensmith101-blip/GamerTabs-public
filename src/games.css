@@ -1,0 +1,511 @@
+/* ============================================================
+   GamerTab: Black Vault — Game Board Styles
+   Append this block to src/style.css
+   ============================================================ */
+
+/* === CSS Custom Properties === */
+:root {
+  --bv-bg:          #0a0a0f;
+  --bv-surface:     #12121e;
+  --bv-card:        #1a1a2e;
+  --bv-border:      #2a2a4a;
+  --bv-border-soft: rgba(255,255,255,0.07);
+  --bv-accent:      #e8b800;
+  --bv-red:         #c0392b;
+  --bv-blue:        #2980b9;
+  --bv-green:       #27ae60;
+  --bv-purple:      #7c6af7;
+  --bv-text:        #e0e0e0;
+  --bv-muted:       #666;
+  --bv-faint:       #333;
+  --bv-radius:      10px;
+  --bv-radius-sm:   6px;
+}
+
+/* === Game Shell (outer wrapper) === */
+.game-shell {
+  background: var(--bv-bg);
+  color: var(--bv-text);
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  min-height: 100%;
+  padding: 12px 8px 32px;
+  box-sizing: border-box;
+}
+
+/* === Game Header === */
+.game-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--bv-border);
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.bv-title {
+  color: var(--bv-accent);
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin: 0;
+  text-shadow: 0 0 20px rgba(232,184,0,0.3);
+}
+
+/* === Game Board === */
+.game-board {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  margin: 8px 0;
+}
+
+/* === Side Panels === */
+.game-panel {
+  background: var(--bv-card);
+  border: 1px solid var(--bv-border);
+  border-radius: var(--bv-radius);
+  padding: 12px;
+}
+
+/* === Action Rows === */
+.game-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 12px 0;
+}
+
+/* === Buttons === */
+.bv-button {
+  background: rgba(232,184,0,0.12);
+  color: var(--bv-accent);
+  border: 1px solid rgba(232,184,0,0.35);
+  border-radius: var(--bv-radius-sm);
+  padding: 7px 16px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+  white-space: nowrap;
+  user-select: none;
+}
+.bv-button:hover {
+  background: rgba(232,184,0,0.22);
+  border-color: rgba(232,184,0,0.6);
+  transform: translateY(-1px);
+}
+.bv-button:active { transform: translateY(0); }
+.bv-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+.bv-button.secondary {
+  background: transparent;
+  color: var(--bv-muted);
+  border-color: var(--bv-border);
+}
+.bv-button.secondary:hover {
+  background: rgba(255,255,255,0.05);
+  color: var(--bv-text);
+  border-color: #555;
+}
+.bv-button.danger {
+  color: #f87171;
+  border-color: rgba(248,113,113,0.35);
+  background: rgba(248,113,113,0.08);
+}
+
+/* === Card / Panel === */
+.bv-card {
+  background: var(--bv-card);
+  border: 1px solid var(--bv-border);
+  border-radius: var(--bv-radius);
+}
+
+/* === Turn Indicator === */
+.turn-indicator {
+  text-align: center;
+  color: var(--bv-muted);
+  font-size: 0.85rem;
+  padding: 6px 0;
+  margin-bottom: 6px;
+  letter-spacing: 0.02em;
+}
+.turn-indicator b { color: var(--bv-accent); }
+
+/* === Winner Banner === */
+.winner-banner {
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--bv-accent);
+  background: rgba(232,184,0,0.1);
+  border: 1px solid rgba(232,184,0,0.4);
+  border-radius: var(--bv-radius);
+  padding: 10px 16px;
+  margin-bottom: 12px;
+  animation: bv-pulse-in 0.4s ease;
+  letter-spacing: 0.04em;
+}
+
+@keyframes bv-pulse-in {
+  0%   { transform: scale(0.9); opacity: 0; }
+  60%  { transform: scale(1.04); }
+  100% { transform: scale(1);   opacity: 1; }
+}
+
+/* === Notice / Info Bars === */
+.bv-notice {
+  background: rgba(124,106,247,0.1);
+  border: 1px solid rgba(124,106,247,0.3);
+  border-radius: var(--bv-radius-sm);
+  color: #a78bfa;
+  font-size: 0.78rem;
+  padding: 6px 12px;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+/* === Chess Board === */
+.chess-board {
+  display: inline-grid;
+  grid-template-columns: repeat(8, 1fr);
+  border: 3px solid var(--bv-border);
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 0 24px rgba(232,184,0,0.08);
+}
+.chess-cell-light { background: #4a4a6a; }
+.chess-cell-dark  { background: #2d2d4a; }
+.chess-cell-selected { background: var(--bv-accent) !important; }
+.chess-cell-check { background: rgba(139,0,0,0.7) !important; }
+.chess-cell-legal::after {
+  content: '';
+  position: absolute;
+  width: 36%;
+  height: 36%;
+  border-radius: 50%;
+  background: rgba(232,184,0,0.45);
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  pointer-events: none;
+}
+.chess-piece {
+  font-size: clamp(20px, 5vw, 32px);
+  user-select: none;
+  text-align: center;
+  line-height: 1;
+}
+
+/* === Connect Four Board === */
+.cf-board {
+  background: #0f1020;
+  border-radius: 12px;
+  padding: 8px;
+  border: 2px solid #2a2a4a;
+  box-shadow: 0 0 24px rgba(232,184,0,0.07);
+}
+.cf-cell {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.08);
+  transition: background 0.12s;
+}
+.cf-cell-p1 { background: var(--bv-red); box-shadow: inset 0 -3px 6px rgba(0,0,0,0.4); }
+.cf-cell-p2 { background: var(--bv-accent); box-shadow: inset 0 -3px 6px rgba(0,0,0,0.4); }
+.cf-cell-win { border: 3px solid #fff !important; box-shadow: 0 0 12px #fff !important; }
+
+/* === Sea Battle Grids === */
+.sb-grid {
+  display: inline-grid;
+  grid-template-columns: repeat(10, 28px);
+  gap: 1px;
+  background: #0a0a14;
+  border: 2px solid var(--bv-border);
+  border-radius: 6px;
+  padding: 4px;
+}
+.sb-cell {
+  width: 28px; height: 28px;
+  background: rgba(0,80,160,0.2);
+  border: 1px solid rgba(255,255,255,0.06);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+}
+.sb-cell-ship  { background: rgba(100,200,100,0.25); }
+.sb-cell-hit   { background: var(--bv-red); color: #fff; }
+.sb-cell-miss  { background: rgba(255,255,255,0.08); color: #555; }
+.sb-cell-target:hover { background: rgba(255,0,0,0.2); cursor: crosshair; }
+
+/* === Memory Match Cards === */
+.mm-card {
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2rem;
+  transition: all 0.2s ease;
+  user-select: none;
+  cursor: pointer;
+}
+.mm-card-back {
+  background: #12121e;
+  border: 2px solid rgba(255,255,255,0.07);
+}
+.mm-card-front {
+  background: #1a1a3a;
+  border: 2px solid #4a4a8a;
+}
+.mm-card-matched {
+  background: rgba(76,175,80,0.15);
+  border: 2px solid rgba(76,175,80,0.4);
+  cursor: default;
+}
+
+/* === Domino Tiles === */
+.domino-tile {
+  display: inline-flex;
+  flex-direction: column;
+  border: 2px solid rgba(255,255,255,0.15);
+  border-radius: 6px;
+  background: #1a1a2e;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.domino-tile-half {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: var(--bv-purple);
+}
+.domino-tile-divider {
+  width: 80%;
+  height: 1px;
+  background: #2a2a4a;
+  margin: 0 auto;
+}
+.domino-tile-playable {
+  border-color: var(--bv-accent);
+  background: rgba(232,184,0,0.07);
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(232,184,0,0.2);
+}
+
+/* === Checkers Board === */
+.checkers-cell-dark  { background: #2d2d2d; }
+.checkers-cell-light { background: #888; }
+.checkers-cell-sel   { background: #4a4a10 !important; }
+.checkers-piece-r {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--bv-red);
+  border: 2px solid #e74c3c;
+  display: flex; align-items: center; justify-content: center;
+}
+.checkers-piece-b {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: #222;
+  border: 2px solid #666;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* === Colour Clash === */
+.reversi-board {
+  background: #1a2a1a;
+  border-radius: 8px;
+  padding: 8px;
+  border: 2px solid #2a3a2a;
+}
+.reversi-cell {
+  width: 50px; height: 50px;
+  background: #0d1f0d;
+  border: 1px solid #1a3a1a;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 4px;
+}
+.reversi-disc-b {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: #111;
+  border: 2px solid #444;
+  transition: box-shadow 0.3s;
+}
+.reversi-disc-w {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: #e8e8e8;
+  border: 2px solid #bbb;
+  transition: box-shadow 0.3s;
+}
+.reversi-hint {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: rgba(100,200,100,0.35);
+  border: 1px solid rgba(100,200,100,0.5);
+}
+
+/* === Territory / Kingdom Conquest Nodes === */
+.territory-node circle { transition: opacity 0.2s, stroke-width 0.2s; }
+.territory-node:hover circle { opacity: 1; stroke-width: 2; }
+
+/* === Flag Front Board === */
+.ff-cell {
+  width: 40px; height: 40px;
+  border: 1px solid rgba(255,255,255,0.04);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+}
+.ff-piece-player {
+  width: 34px; height: 34px; border-radius: 4px;
+  background: rgba(192,57,43,0.8);
+  border: 1px solid #e74c3c;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.ff-piece-ai {
+  width: 34px; height: 34px; border-radius: 4px;
+  background: rgba(40,40,60,0.9);
+  border: 1px solid #444;
+  display: flex; align-items: center; justify-content: center;
+}
+.ff-piece-revealed { background: rgba(41,128,185,0.9) !important; border-color: #3498db !important; }
+.ff-lake {
+  background: linear-gradient(135deg, #0a1830, #152040) !important;
+  cursor: default;
+}
+
+/* === Dice (Royal Dice 5 / Farkle) === */
+.bv-die {
+  width: 52px; height: 52px;
+  border-radius: 10px;
+  background: #1a1a2e;
+  border: 2px solid rgba(255,255,255,0.15);
+  position: relative;
+  flex-shrink: 0;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.bv-die.held {
+  background: #2a2a0a;
+  border-color: var(--bv-accent);
+  box-shadow: 0 0 12px rgba(232,184,0,0.4);
+}
+.bv-pip {
+  position: absolute;
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  background: var(--bv-accent);
+  transform: translate(-50%,-50%);
+}
+.bv-die.held .bv-pip { background: var(--bv-accent); }
+
+/* === Score Sheet Row === */
+.score-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 6px;
+  border-radius: 4px;
+  margin-bottom: 2px;
+  border: 1px solid transparent;
+  transition: background 0.1s, border-color 0.1s;
+}
+.score-row.can-score {
+  background: rgba(232,184,0,0.06);
+  border-color: rgba(232,184,0,0.2);
+  cursor: pointer;
+}
+.score-row.can-score:hover {
+  background: rgba(232,184,0,0.12);
+  border-color: rgba(232,184,0,0.4);
+}
+.score-row.filled { opacity: 0.7; }
+
+/* === Ludo Board === */
+.ludo-token {
+  width: 16px; height: 16px; border-radius: 50%;
+  font-size: 8px; font-weight: bold; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid rgba(255,255,255,0.4);
+  transition: transform 0.2s;
+}
+
+/* === Snakes & Ladders === */
+.sl-board {
+  position: relative;
+  border: 2px solid var(--bv-border);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 0 20px rgba(232,184,0,0.08);
+}
+.sl-cell {
+  position: absolute;
+  border: 1px solid #2a2a3a;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  overflow: hidden;
+}
+.sl-sq-num { font-size: 8px; color: #444; line-height: 1; }
+.sl-vault   { background: #1a2a1a !important; }
+.sl-viper   { background: #2a1a1a !important; }
+
+/* === Mansion Mystery === */
+.room-btn {
+  background: rgba(124,106,247,0.1);
+  border: 1px solid rgba(124,106,247,0.3);
+  color: #a78bfa;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.room-btn:hover  { background: rgba(124,106,247,0.2); }
+.room-btn.active { background: rgba(124,106,247,0.3); border-color: #7c6af7; color: #fff; }
+
+/* === Scrollbars (Webkit) === */
+.game-shell *::-webkit-scrollbar       { width: 4px; height: 4px; }
+.game-shell *::-webkit-scrollbar-track { background: transparent; }
+.game-shell *::-webkit-scrollbar-thumb { background: #2a2a4a; border-radius: 4px; }
+
+/* === Mobile Responsive === */
+@media (max-width: 480px) {
+  .bv-title    { font-size: 1rem; }
+  .bv-button   { padding: 6px 11px; font-size: 0.75rem; }
+  .cf-cell     { width: 40px; height: 40px; }
+  .sb-cell     { width: 24px; height: 24px; font-size: 11px; }
+  .reversi-cell{ width: 40px; height: 40px; }
+  .reversi-disc-b, .reversi-disc-w { width: 30px; height: 30px; }
+  .mm-card     { font-size: 1.5rem; }
+  .ff-cell     { width: 32px; height: 32px; }
+  .ff-piece-player, .ff-piece-ai { width: 26px; height: 26px; font-size: 9px; }
+}
+
+/* === Animation Utilities === */
+@keyframes bv-shake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-4px); }
+  40%       { transform: translateX(4px); }
+  60%       { transform: translateX(-3px); }
+  80%       { transform: translateX(3px); }
+}
+.bv-shake { animation: bv-shake 0.35s ease; }
+
+@keyframes bv-glow-pulse {
+  0%, 100% { box-shadow: 0 0 6px rgba(232,184,0,0.3); }
+  50%       { box-shadow: 0 0 18px rgba(232,184,0,0.7); }
+}
+.bv-glow { animation: bv-glow-pulse 1.5s ease-in-out infinite; }
+
+@keyframes bv-flip-in {
+  0%   { transform: rotateY(90deg) scale(0.8); opacity: 0; }
+  100% { transform: rotateY(0deg) scale(1);    opacity: 1; }
+}
+.bv-flip-in { animation: bv-flip-in 0.2s ease; }
+
+@keyframes bv-slide-up {
+  0%   { transform: translateY(12px); opacity: 0; }
+  100% { transform: translateY(0);    opacity: 1; }
+}
+.bv-slide-up { animation: bv-slide-up 0.25s ease; }
+
+/* === End of GamerTab: Black Vault Game Styles === */
