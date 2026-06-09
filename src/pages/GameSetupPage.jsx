@@ -7,6 +7,7 @@ const MODE_COPY = {
   ai: { icon: '🤖', title: 'Play vs AI', desc: 'Computer opponents. Choose difficulty and seats.' },
   local: { icon: '📱', title: 'Same Device', desc: 'Pass-and-play on one phone, tablet or computer.' },
   single: { icon: '🧍', title: 'Solo', desc: 'Single-player mode.' },
+  localLive: { icon: 'LIVE', title: 'Local / Friends', desc: 'Find players, invite friends, or join a live room.' },
 }
 
 function maxPlayersForGame(game) {
@@ -92,6 +93,10 @@ export default function GameSetupPage({ navigate, params = {} }) {
     })
   }
 
+  function openPeople() {
+    navigate('friends', { gameId: game.id })
+  }
+
   const CountControls = ({ includeLocal = false }) => <div className="gt-setup-controls">
     {mode !== 'single' && <div><b>Players</b><div className="clean-chip-row">{Array.from({ length: Math.max(1, maxPlayers - 1) }, (_, i) => i + 2).map(n => <button key={n} className={`count-btn ${playerCount === n ? 'active' : ''}`} onClick={() => updateCount(n)}>{n}</button>)}</div></div>}
     {includeLocal && <div><b>People on this device</b><div className="clean-chip-row">{Array.from({ length: playerCount }, (_, i) => i + 1).map(n => <button key={n} className={`count-btn ${localHumans === n ? 'active' : ''}`} onClick={() => { setLocalHumans(n); setAiSeats(Math.min(aiSeats, playerCount - n)) }}>{n}</button>)}</div></div>}
@@ -105,11 +110,14 @@ export default function GameSetupPage({ navigate, params = {} }) {
 
     {!mode && <section className="setup-section gt-play-menu">
       <h3 className="setup-heading">How do you want to play?</h3>
-      <p className="setup-desc">Online rooms, chat, friends and invites are turned off. Pick an offline mode and start playing.</p>
+      <p className="setup-desc">Choose AI or solo practice, same-device play, or invite people through the live friends lobby.</p>
       <div className="gt-play-choice-grid">
         {allowedModes.map(card => <button key={card.id} className="gt-play-choice" onClick={() => setMode(card.id)}>
           <span>{card.icon}</span><b>{card.title}</b><small>{card.desc || card.subtitle}</small>
         </button>)}
+        {game.supportsOnline && <button className="gt-play-choice" onClick={openPeople}>
+          <span>{MODE_COPY.localLive.icon}</span><b>{MODE_COPY.localLive.title}</b><small>{MODE_COPY.localLive.desc}</small>
+        </button>}
       </div>
     </section>}
 

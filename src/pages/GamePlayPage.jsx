@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getGame } from '../lib/games'
+import { useOnlineRoom } from '../hooks/useOnlineRoom'
+import { playerRoleForRoom } from '../lib/socialUtils'
 
 // ─── Core games ───────────────────────────────────────────────────────────────
 import TicTacToe        from '../components/online-games/TicTacToe'
@@ -130,6 +132,8 @@ export default function GamePlayPage({ session, navigate, params }) {
   const { gameId, mode, difficulty, roomCode, playerRole, playerCount } = params
   const game = getGame(gameId)
   const [resetKey, setResetKey] = useState(0)
+  const isOnline = (mode === 'online' || mode === 'localLive') && !!roomCode
+  const onlineRoom = useOnlineRoom(isOnline ? roomCode : null)
 
   useEffect(() => {
     try {
@@ -159,19 +163,33 @@ export default function GamePlayPage({ session, navigate, params }) {
   }
 
   const GameComponent = GAME_MAP[gameId] || ScaffoldGame
+  const room = onlineRoom.room
+  const effectiveRole = isOnline ? (playerRole && playerRole !== 'spectator' ? playerRole : playerRoleForRoom(room, session?.user?.id)) : playerRole
   const routeSlots = Array.isArray(params?.playerSlots) ? params.playerSlots : []
-  const effectiveSlots = routeSlots
+  const effectiveSlots = isOnline && Array.isArray(room?.state?.playerSlots) ? room.state.playerSlots : routeSlots
   const effectivePlayerCount = mode === 'single'
     ? 1
-    : Math.max(2, routeSlots.length || Number(playerCount) || 2)
+    : Math.max(2, effectiveSlots.length || Number(playerCount) || 2)
+
+  if (isOnline && onlineRoom.loading) {
+    return <div className="page"><p className="loading-block">Joining live room...</p></div>
+  }
+
+  if (isOnline && onlineRoom.error) {
+    return <div className="page"><button className="btn-back" onClick={() => navigate('friends', { gameId })}>Friends</button><p className="empty-state">{onlineRoom.error}</p></div>
+  }
 
   const sharedProps = {
-    roomCode: null, playerRole,
+    roomCode: isOnline ? roomCode : null,
+    playerRole: effectiveRole,
     playerSlots: effectiveSlots,
     playerCount:  effectivePlayerCount,
     gameMode:     mode,
     difficulty:   difficulty || 'medium',
-    session, game, onlineRoom: null, makeMove: null,
+    session,
+    game,
+    onlineRoom: isOnline ? room : null,
+    makeMove: isOnline ? onlineRoom.makeMove : null,
     onBack:       () => navigate('games'),
     onSetupBack:  () => navigate('setup', { gameId }),
   }

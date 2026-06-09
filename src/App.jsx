@@ -145,7 +145,7 @@ export default function App() {
   }
 
   // ── Determine if current gameMode requires internet ─────────────────────────
-  const isOnlineGameMode = pageParams?.mode === 'online'
+  const isOnlineGameMode = pageParams?.mode === 'online' || pageParams?.mode === 'localLive'
 
   return (
     <div className="app-root">
@@ -197,7 +197,7 @@ export default function App() {
 
 
       {(page === 'friends' || page === 'friends-hub' || page === 'rooms') && (
-        <FriendsPage session={session} navigate={navigate} />
+        <FriendsPage session={session} navigate={navigate} params={pageParams} />
       )}
     </div>
   )
