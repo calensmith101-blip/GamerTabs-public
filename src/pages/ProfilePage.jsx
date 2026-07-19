@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { supabase } from '../supabaseClient'
+import { formatSupabaseError, supabase, supabaseConfigError } from '../supabaseClient'
 import { deriveStats } from '../lib/scoring'
 import { isOfflineSession, loadOfflineProfile, saveOfflineProfile } from '../lib/offline'
 
@@ -86,6 +86,12 @@ export default function ProfilePage({ session, navigate }) {
       return
     }
 
+    if (!supabase) {
+      setStatus('Discovery update failed - ' + (supabaseConfigError || 'Supabase is not configured.'))
+      setDiscoverySaving(false)
+      return
+    }
+
     const { data, error } = await supabase.from('profiles')
       .upsert(payload, { onConflict: 'id' })
       .select()
@@ -133,7 +139,7 @@ export default function ProfilePage({ session, navigate }) {
       .maybeSingle()
 
     if (error) {
-      setStatus('Discovery update failed - ' + error.message)
+      setStatus('Discovery update failed - ' + formatSupabaseError(error))
     } else {
       const updated = data || { ...profile, local_discovery_enabled: next }
       setProfile(updated)

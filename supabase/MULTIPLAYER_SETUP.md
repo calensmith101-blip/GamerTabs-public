@@ -5,13 +5,13 @@
 Frontend:
 
 - `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_ANON_KEY`
+- `VITE_SUPABASE_PUBLISHABLE_KEY` or `VITE_SUPABASE_ANON_KEY` must be the public anon/publishable browser key. Do not use a service-role key or any `sb_secret_...` key here.
 - `VITE_APP_URL`
 
 Server/API routes:
 
 - `SUPABASE_URL`
-- `SUPABASE_SERVICE_ROLE_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY` must stay server-only. Do not prefix it with `VITE_`.
 - `STRIPE_SECRET_KEY`
 - `STRIPE_WEBHOOK_SECRET_GAMERTABS`
 - `STRIPE_PRICE_ID_GAMERTABS`

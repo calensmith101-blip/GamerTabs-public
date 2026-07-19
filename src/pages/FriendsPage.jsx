@@ -130,6 +130,7 @@ export default function FriendsPage({ session, navigate, params = {} }) {
   const games = useMemo(liveGameList, [])
   const autoJoinRef = useRef('')
   const autoRandomRef = useRef('')
+  const fromSetup = !!params.fromSetup
   const [tab, setTab] = useState(normaliseTab(params.tab))
   const [gameId, setGameId] = useState(params.gameId || games[0]?.id || 'tictactoe')
   const [profile, setProfile] = useState(null)
@@ -145,8 +146,8 @@ export default function FriendsPage({ session, navigate, params = {} }) {
   const [chatTarget, setChatTarget] = useState(null)
   const [chatText, setChatText] = useState('')
   const [messages, setMessages] = useState([])
-  const [playerCount, setPlayerCount] = useState(2)
-  const [aiSeats, setAiSeats] = useState(0)
+  const [playerCount, setPlayerCount] = useState(() => Math.max(2, Math.min(5, Number(params.playerCount) || 2)))
+  const [aiSeats, setAiSeats] = useState(() => Math.max(0, Math.min(4, Number(params.aiSeats) || 0)))
   const [status, setStatus] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -165,6 +166,14 @@ export default function FriendsPage({ session, navigate, params = {} }) {
   useEffect(() => {
     if (params.joinCode) setJoinCode(normaliseCode(params.joinCode))
   }, [params.joinCode])
+
+  useEffect(() => {
+    if (params.playerCount) setPlayerCount(Math.max(2, Math.min(5, Number(params.playerCount) || 2)))
+  }, [params.playerCount])
+
+  useEffect(() => {
+    if (params.aiSeats !== undefined) setAiSeats(Math.max(0, Math.min(4, Number(params.aiSeats) || 0)))
+  }, [params.aiSeats])
 
   useEffect(() => {
     if (!selectedGame) return
@@ -513,7 +522,7 @@ export default function FriendsPage({ session, navigate, params = {} }) {
       setProfile({ ...profile, local_discovery_enabled: next, is_online: true, last_seen: new Date().toISOString() })
       setStatus(next ? 'You are visible to world players.' : 'You are hidden from discovery.')
     } catch (err) {
-      setStatus(err.message || 'Could not update visibility.')
+      setStatus(err.message || 'Could not update visibility. Check that VITE_SUPABASE_ANON_KEY is the public anon key.')
     }
   }
 
@@ -543,42 +552,61 @@ export default function FriendsPage({ session, navigate, params = {} }) {
     </div>
 
     <section className="gt-social-panel">
-      <div className="gt-social-topbar">
-        <select className="games-search" value={gameId} onChange={e => setGameId(e.target.value)}>
-          {games.map(game => <option key={game.id} value={game.id}>{game.title}</option>)}
-        </select>
-        <button className="btn-primary" disabled={loading} onClick={startRandomMatch}>Random Match</button>
-        <button className="btn-ghost" disabled={loading} onClick={() => createInvite(null)}>Create Invite Code</button>
-      </div>
-      <div className="gt-match-builder">
-        <div>
-          <b>Total seats</b>
-          <div className="gt-seat-buttons">
-            {Array.from({ length: Math.max(1, maxPlayers - 1) }, (_, i) => i + 2).map(count => (
-              <button
-                key={count}
-                className={playerCount === count ? 'active' : ''}
-                onClick={() => {
-                  setPlayerCount(count)
-                  setAiSeats(prev => Math.min(prev, count - 1))
-                }}>
-                {count}
-              </button>
-            ))}
+      {fromSetup ? (
+        <div className="gt-setup-summary">
+          <div className="gt-setup-summary-main">
+            <b>{selectedGame?.title || 'Selected game'}</b>
+            <span>{playerCount} seats · {aiSeats} AI fill</span>
+            <div className="gt-seat-preview">
+              {seats.map(slot => <span key={slot.seat} className={`slot-pill ${slot.kind}`}><b>{slot.seat}</b> {slot.kind === 'ai' ? 'AI' : slot.label}</span>)}
+            </div>
+          </div>
+          <div className="gt-social-actions">
+            <button className="btn-primary" disabled={loading} onClick={startRandomMatch}>Random Match</button>
+            <button className="btn-ghost" disabled={loading} onClick={() => createInvite(null)}>Create Invite Code</button>
+            <button className="btn-ghost" onClick={() => navigate('setup', { gameId })}>Change Settings</button>
           </div>
         </div>
-        <div>
-          <b>AI seats</b>
-          <div className="gt-seat-buttons">
-            {Array.from({ length: playerCount }, (_, i) => i).map(count => (
-              <button key={count} className={aiSeats === count ? 'active' : ''} onClick={() => setAiSeats(count)}>{count}</button>
-            ))}
+      ) : (
+        <>
+          <div className="gt-social-topbar">
+            <select className="games-search" value={gameId} onChange={e => setGameId(e.target.value)}>
+              {games.map(game => <option key={game.id} value={game.id}>{game.title}</option>)}
+            </select>
+            <button className="btn-primary" disabled={loading} onClick={startRandomMatch}>Random Match</button>
+            <button className="btn-ghost" disabled={loading} onClick={() => createInvite(null)}>Create Invite Code</button>
           </div>
-        </div>
-        <div className="gt-seat-preview">
-          {seats.map(slot => <span key={slot.seat} className={`slot-pill ${slot.kind}`}><b>{slot.seat}</b> {slot.kind === 'ai' ? 'AI' : slot.label}</span>)}
-        </div>
-      </div>
+          <div className="gt-match-builder">
+            <div>
+              <b>Total seats</b>
+              <div className="gt-seat-buttons">
+                {Array.from({ length: Math.max(1, maxPlayers - 1) }, (_, i) => i + 2).map(count => (
+                  <button
+                    key={count}
+                    className={playerCount === count ? 'active' : ''}
+                    onClick={() => {
+                      setPlayerCount(count)
+                      setAiSeats(prev => Math.min(prev, count - 1))
+                    }}>
+                    {count}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <b>AI seats</b>
+              <div className="gt-seat-buttons">
+                {Array.from({ length: playerCount }, (_, i) => i).map(count => (
+                  <button key={count} className={aiSeats === count ? 'active' : ''} onClick={() => setAiSeats(count)}>{count}</button>
+                ))}
+              </div>
+            </div>
+            <div className="gt-seat-preview">
+              {seats.map(slot => <span key={slot.seat} className={`slot-pill ${slot.kind}`}><b>{slot.seat}</b> {slot.kind === 'ai' ? 'AI' : slot.label}</span>)}
+            </div>
+          </div>
+        </>
+      )}
       <div className="join-inline">
         <input className="games-search" value={joinCode} onChange={e => setJoinCode(e.target.value.toUpperCase())} placeholder="Enter room code" />
         <button className="btn-primary" disabled={loading || !joinCode.trim()} onClick={() => joinByCode()}>Join</button>

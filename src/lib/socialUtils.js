@@ -1,4 +1,4 @@
-import { supabase } from '../supabaseClient'
+import { formatSupabaseError, supabase, supabaseConfigError } from '../supabaseClient'
 
 const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
 const SEAT_IDS = ['X', 'O', 'P3', 'P4', 'P5', 'P6']
@@ -32,12 +32,13 @@ export async function ensureProfile(user) {
 
 export async function setDiscovery(userId, enabled) {
   if (!userId) return
+  if (!supabase) throw new Error(supabaseConfigError || 'Supabase is not configured.')
   const { error } = await supabase.from('profiles').update({
     local_discovery_enabled: !!enabled,
     is_online: true,
     last_seen: new Date().toISOString(),
   }).eq('id', userId)
-  if (error) throw error
+  if (error) throw new Error(formatSupabaseError(error))
 }
 
 export async function searchPlayers({ userId, query = '', mode = 'search', country = '', state = '', suburb = '' }) {

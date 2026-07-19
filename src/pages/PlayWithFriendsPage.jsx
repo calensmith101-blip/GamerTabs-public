@@ -159,7 +159,7 @@ export default function PlayWithFriendsPage({ session, navigate }) {
   async function toggleDiscovery() {
     const next = !profile?.local_discovery_enabled
     try { await setDiscovery(userId, next); setProfile({ ...profile, local_discovery_enabled: next, is_online: true, last_seen: new Date().toISOString() }); setStatus(next ? 'You are visible to other players.' : 'You are hidden from discovery.') }
-    catch (e) { setStatus(e.message || 'Could not update visibility') }
+    catch (e) { setStatus(e.message || 'Could not update visibility. Check that VITE_SUPABASE_ANON_KEY is the public anon key.') }
   }
 
   function UserTile({ user, friend = false }) {

@@ -3,13 +3,18 @@ import { Bot, Shuffle, UserRoundPlus } from 'lucide-react'
 import { getGame, getGamePlayModes } from '../lib/games'
 
 const SEATS = ['X', 'O', 'P3', 'P4', 'P5', 'P6']
+const PLAY_CHOICES = ['ai', 'random', 'friend']
 
 const MODE_COPY = {
-  ai: { Icon: Bot, title: 'Play vs AI', desc: 'Practice against computer opponents.' },
-  random: { Icon: Shuffle, title: 'Play Online — Random Match', desc: 'Match with another player looking for this game.' },
-  friend: { Icon: UserRoundPlus, title: 'Play Friend', desc: 'Choose friends, add players, invite, challenge or rematch.' },
-  single: { icon: '1P', title: 'Solo', desc: 'Single-player mode.' },
-  local: { icon: '1D', title: 'Same Device', desc: 'Offline pass-and-play on one phone, tablet or computer.' },
+  ai: { Icon: Bot, title: 'Play vs AI', desc: 'Computer opponents with one clear setup.' },
+  random: { Icon: Shuffle, title: 'Play Online — Random Match', desc: 'Find another player looking for this game.' },
+  friend: { Icon: UserRoundPlus, title: 'Play Friend', desc: 'Invite friends, add players, and rematch.' },
+}
+
+function normaliseSetupMode(value) {
+  if (value === 'random' || value === 'onlineRandom') return 'random'
+  if (value === 'friend' || value === 'online' || value === 'localLive') return 'friend'
+  return 'ai'
 }
 
 function maxPlayersForGame(game) {
@@ -18,77 +23,110 @@ function maxPlayersForGame(game) {
   if (raw.includes('5')) return 5
   if (raw.includes('4')) return 4
   if (raw.includes('3')) return 3
+  if (raw.includes('2')) return 2
+  if (raw.trim().startsWith('1')) return 1
   return 2
 }
 
 function clampPlayerCount(value, game) {
-  const min = String(game?.players || '').startsWith('1') ? 1 : 2
   const max = Math.min(5, maxPlayersForGame(game))
-  return Math.max(min, Math.min(max, Number(value) || min))
+  return Math.max(2, Math.min(max, Number(value) || 2))
 }
 
-function makeSlots({ count, mode, aiSeats = 0, localHumans = 1 }) {
-  if (mode === 'single') return [{ seat: 'X', kind: 'local', label: 'You' }]
+function makeSlots({ count, mode, aiSeats = 0 }) {
+  if (count <= 1) return [{ seat: 'X', kind: 'local', label: 'You' }]
   const total = Math.max(2, Math.min(5, Number(count) || 2))
-  const humans = mode === 'ai' ? 1 : Math.max(1, Math.min(total, Number(localHumans) || total))
+  const aiCount = Math.max(0, Math.min(total - 1, Number(aiSeats) || 0))
+
   return SEATS.slice(0, total).map((seat, index) => {
-    if (index < humans) return { seat, kind: 'local', label: index === 0 ? 'You' : `Player ${index + 1}` }
-    return { seat, kind: 'ai', label: 'Computer' }
-  }).map((slot, index) => {
-    if (mode === 'ai' && index > 0) return { ...slot, kind: 'ai', label: 'Computer' }
-    if (mode === 'local' && index >= total - aiSeats) return { ...slot, kind: 'ai', label: 'Computer' }
-    return slot
+    if (index === 0) return { seat, kind: 'local', label: 'You' }
+    if (mode === 'ai') return { seat, kind: 'ai', label: 'Computer' }
+    if (index >= total - aiCount) return { seat, kind: 'ai', label: 'AI' }
+    return { seat, kind: 'open', label: index === 1 ? 'Friend' : `Player ${index + 1}` }
   })
 }
 
 function SlotPreview({ slots }) {
-  return <div className="slot-preview friendly-slot-preview">
-    {slots.map(slot => <span key={slot.seat} className={`slot-pill ${slot.kind}`}><b>{slot.seat}</b> {slot.kind === 'ai' ? 'AI' : slot.label || 'Player'}</span>)}
-  </div>
+  return (
+    <div className="slot-preview friendly-slot-preview">
+      {slots.map(slot => (
+        <span key={slot.seat} className={`slot-pill ${slot.kind}`}>
+          <b>{slot.seat}</b> {slot.kind === 'ai' ? 'AI' : slot.label || 'Player'}
+        </span>
+      ))}
+    </div>
+  )
 }
 
 export default function GameSetupPage({ navigate, params = {}, access }) {
   const game = getGame(params.gameId)
-  const [mode, setMode] = useState(params.prefillMode || null)
+  const [mode, setMode] = useState(() => normaliseSetupMode(params.prefillMode))
   const [difficulty, setDifficulty] = useState('medium')
   const [playerCount, setPlayerCount] = useState(2)
   const [aiSeats, setAiSeats] = useState(1)
-  const [localHumans, setLocalHumans] = useState(2)
 
   const allowedModes = useMemo(() => getGamePlayModes(game?.id), [game?.id])
 
   useEffect(() => {
     if (!game) return
-    const start = clampPlayerCount(String(game.players || '').startsWith('1') ? 1 : 2, game)
+    const max = Math.min(5, maxPlayersForGame(game))
+    const start = Math.max(2, Math.min(max || 2, 2))
     setPlayerCount(start)
-    setLocalHumans(Math.min(2, Math.max(1, start)))
     setAiSeats(start > 1 ? 1 : 0)
+    setMode(current => normaliseSetupMode(current))
   }, [game?.id])
 
-  if (!game) return <div className="page"><button className="btn-back" onClick={() => navigate('games')}>Back</button><p>Game not found.</p></div>
-
-  const maxPlayers = Math.min(5, maxPlayersForGame(game))
-  const slots = makeSlots({ count: playerCount, mode: mode || 'local', aiSeats, localHumans })
-  const canPlayAi = allowedModes.includes('ai') || allowedModes.includes('single')
-  const onlineReady = game.supportsOnline && maxPlayers >= 2
-
-  function updateCount(next) {
-    const count = clampPlayerCount(next, game)
-    setPlayerCount(count)
-    setLocalHumans(prev => Math.max(1, Math.min(prev, count)))
-    setAiSeats(prev => Math.max(0, Math.min(prev, Math.max(0, count - 1))))
+  if (!game) {
+    return (
+      <div className="page">
+        <button className="btn-back" onClick={() => navigate('games')}>Back</button>
+        <p>Game not found.</p>
+      </div>
+    )
   }
 
-  function startOffline(selectedMode) {
-    const count = selectedMode === 'single' ? 1 : playerCount
+  const maxPlayers = Math.min(5, maxPlayersForGame(game))
+  const hasAiMode = allowedModes.includes('ai')
+  const hasSoloMode = allowedModes.includes('single')
+  const canPlayAi = hasAiMode || hasSoloMode
+  const soloOnly = !hasAiMode && hasSoloMode
+  const onlineReady = game.supportsOnline && maxPlayers >= 2
+  const selectedCopy = MODE_COPY[mode]
+  const SelectedIcon = selectedCopy.Icon
+
+  const aiOpponentCount = soloOnly ? 0 : Math.max(1, Math.min(Math.max(1, maxPlayers - 1), Number(aiSeats) || 1))
+  const aiTotalPlayers = soloOnly ? 1 : Math.max(2, Math.min(maxPlayers, aiOpponentCount + 1))
+  const friendAiSeats = Math.max(0, Math.min(playerCount - 1, Number(aiSeats) || 0))
+  const modeUnavailable = (mode === 'ai' && !canPlayAi) || (mode !== 'ai' && !onlineReady)
+
+  const slots = mode === 'ai'
+    ? makeSlots({ count: aiTotalPlayers, mode: 'ai', aiSeats: aiOpponentCount })
+    : mode === 'random'
+      ? makeSlots({ count: 2, mode: 'friend', aiSeats: 0 })
+      : makeSlots({ count: playerCount, mode: 'friend', aiSeats: friendAiSeats })
+
+  function updateFriendCount(next) {
+    const count = clampPlayerCount(next, game)
+    setPlayerCount(count)
+    setAiSeats(prev => Math.max(0, Math.min(prev, count - 1)))
+  }
+
+  function setAiOpponents(count) {
+    const next = Math.max(1, Math.min(Math.max(1, maxPlayers - 1), Number(count) || 1))
+    setAiSeats(next)
+    setPlayerCount(Math.max(2, Math.min(maxPlayers, next + 1)))
+  }
+
+  function startAiGame() {
+    const count = soloOnly ? 1 : aiTotalPlayers
     navigate('play', {
       gameId: game.id,
-      mode: selectedMode,
+      mode: soloOnly ? 'single' : 'ai',
       difficulty,
       playerCount: count,
       playerRole: 'X',
       roomCode: null,
-      playerSlots: makeSlots({ count, mode: selectedMode, aiSeats, localHumans }),
+      playerSlots: makeSlots({ count, mode: soloOnly ? 'single' : 'ai', aiSeats: aiOpponentCount }),
     })
   }
 
@@ -97,46 +135,140 @@ export default function GameSetupPage({ navigate, params = {}, access }) {
       navigate('account')
       return
     }
-    navigate('friends', { gameId: game.id, tab, ...extra })
+    navigate('friends', {
+      gameId: game.id,
+      tab,
+      fromSetup: true,
+      playerCount: mode === 'random' ? 2 : playerCount,
+      aiSeats: mode === 'random' ? 0 : friendAiSeats,
+      difficulty,
+      ...extra,
+    })
   }
 
-  const CountControls = ({ includeLocal = false }) => <div className="gt-setup-controls">
-    {mode !== 'single' && <div><b>Players</b><div className="clean-chip-row">{Array.from({ length: Math.max(1, maxPlayers - 1) }, (_, i) => i + 2).map(n => <button key={n} className={`count-btn ${playerCount === n ? 'active' : ''}`} onClick={() => updateCount(n)}>{n}</button>)}</div></div>}
-    {includeLocal && <div><b>People on this device</b><div className="clean-chip-row">{Array.from({ length: playerCount }, (_, i) => i + 1).map(n => <button key={n} className={`count-btn ${localHumans === n ? 'active' : ''}`} onClick={() => { setLocalHumans(n); setAiSeats(Math.min(aiSeats, playerCount - n)) }}>{n}</button>)}</div></div>}
-    {mode !== 'single' && <div><b>AI fill</b><div className="clean-chip-row">{Array.from({ length: playerCount }, (_, i) => i).map(n => <button key={n} className={`count-btn ${aiSeats === n ? 'active' : ''}`} onClick={() => setAiSeats(n)}>{n}</button>)}</div></div>}
-    <SlotPreview slots={slots} />
-  </div>
+  function primaryAction() {
+    if (mode === 'ai') startAiGame()
+    if (mode === 'random') openPeople('random', { autoRandom: true, playerCount: 2, aiSeats: 0 })
+    if (mode === 'friend') openPeople('friends')
+  }
 
-  return <div className="page setup-page gt-simple-setup">
-    <div className="page-header"><button className="btn-back" onClick={() => mode ? setMode(null) : navigate('games')}>{mode ? 'Modes' : 'Games'}</button><h2 className="page-title">{game.icon} {game.title}</h2></div>
-    <p className="setup-game-desc">{game.desc}</p>
+  const primaryLabel = mode === 'ai'
+    ? (soloOnly ? 'Start Game' : 'Start AI Game')
+    : mode === 'random'
+      ? (access?.isFull ? 'Find Random Match' : 'Sign In / Upgrade')
+      : (access?.isFull ? 'Continue to Friends' : 'Sign In / Upgrade')
 
-    {!mode && <section className="setup-section gt-play-menu">
-      <h3 className="setup-heading">How do you want to play?</h3>
-      <p className="setup-desc">Pick a match type for {game.title}.</p>
-      <div className="gt-play-choice-grid">
-        <button className="gt-play-choice" disabled={!canPlayAi} onClick={() => setMode(allowedModes.includes('ai') ? 'ai' : 'single')}>
-          <MODE_COPY.ai.Icon aria-hidden="true" />
-          <b>{MODE_COPY.ai.title}</b>
-          <small>{canPlayAi ? MODE_COPY.ai.desc : 'AI play is not available for this game yet.'}</small>
-        </button>
-        <button className="gt-play-choice" disabled={!onlineReady} onClick={() => openPeople('random', { autoRandom: true })}>
-          <MODE_COPY.random.Icon aria-hidden="true" />
-          <b>{MODE_COPY.random.title}</b>
-          <small>{onlineReady ? MODE_COPY.random.desc : 'Online play is not available for this game yet.'}</small>
-        </button>
-        <button className="gt-play-choice" disabled={!onlineReady} onClick={() => openPeople('friends')}>
-          <MODE_COPY.friend.Icon aria-hidden="true" />
-          <b>{MODE_COPY.friend.title}</b>
-          <small>{onlineReady ? MODE_COPY.friend.desc : 'Friend play is not available for this game yet.'}</small>
-        </button>
+  return (
+    <div className="page setup-page gt-simple-setup gt-one-menu-setup">
+      <div className="page-header">
+        <button className="btn-back" onClick={() => navigate('games')}>Games</button>
+        <h2 className="page-title">{game.icon} {game.title}</h2>
       </div>
-    </section>}
 
-    {mode === 'single' && <section className="setup-section gt-setup-card"><h3>Solo</h3><div className="setup-difficulty-row">{['easy','medium','hard','expert'].map(d => <button key={d} className={`diff-btn ${difficulty === d ? 'active' : ''}`} onClick={() => setDifficulty(d)}>{d}</button>)}</div><button className="btn-primary setup-go" onClick={() => startOffline('single')}>Start Solo</button></section>}
+      <section className="setup-section gt-play-console">
+        <div className="gt-console-head">
+          <div>
+            <h3 className="setup-heading">Game Play Settings</h3>
+            <p className="setup-desc">{game.desc}</p>
+          </div>
+          <div className="gt-console-game-chip">{game.players} players</div>
+        </div>
 
-    {mode === 'ai' && <section className="setup-section gt-setup-card"><h3>Play vs AI</h3><div className="setup-difficulty-row">{['easy','medium','hard','expert'].map(d => <button key={d} className={`diff-btn ${difficulty === d ? 'active' : ''}`} onClick={() => setDifficulty(d)}>{d}</button>)}</div><CountControls /><button className="btn-primary setup-go" onClick={() => startOffline('ai')}>Start AI Game</button></section>}
+        <div className="gt-play-choice-grid gt-play-choice-grid-compact">
+          {PLAY_CHOICES.map(id => {
+            const copy = MODE_COPY[id]
+            const Icon = copy.Icon
+            const disabled = id === 'ai' ? !canPlayAi : !onlineReady
+            return (
+              <button
+                key={id}
+                type="button"
+                className={`gt-play-choice ${mode === id ? 'active' : ''}`}
+                disabled={disabled}
+                onClick={() => setMode(id)}
+              >
+                <Icon aria-hidden="true" />
+                <b>{copy.title}</b>
+                <small>{disabled ? (id === 'ai' ? 'AI play is not available for this game yet.' : 'Online play is not available for this game yet.') : copy.desc}</small>
+              </button>
+            )
+          })}
+        </div>
 
-    {mode === 'local' && <section className="setup-section gt-setup-card"><h3>Same Device</h3><p className="setup-desc">Offline turns on this device.</p><CountControls includeLocal /><button className="btn-primary setup-go" onClick={() => startOffline('local')}>Start Same Device Game</button></section>}
-  </div>
+        <div className="gt-settings-board">
+          <div className="gt-settings-main">
+            <div className="gt-settings-title-row">
+              <SelectedIcon aria-hidden="true" />
+              <div>
+                <h3>{selectedCopy.title}</h3>
+                <p>{modeUnavailable ? 'This mode is not available for this game.' : selectedCopy.desc}</p>
+              </div>
+            </div>
+
+            {mode === 'ai' && <>
+              <div className="gt-setting-row">
+                <b>Difficulty</b>
+                <div className="setup-difficulty-row compact">
+                  {['easy', 'medium', 'hard', 'expert'].map(d => (
+                    <button key={d} className={`diff-btn ${difficulty === d ? 'active' : ''}`} onClick={() => setDifficulty(d)}>{d}</button>
+                  ))}
+                </div>
+              </div>
+              {soloOnly ? (
+                <div className="gt-setting-row gt-setting-note">
+                  <b>Players</b>
+                  <span>Solo mode</span>
+                </div>
+              ) : (
+                <div className="gt-setting-row">
+                  <b>AI opponents</b>
+                  <div className="clean-chip-row">
+                    {Array.from({ length: Math.max(1, maxPlayers - 1) }, (_, i) => i + 1).map(n => (
+                      <button key={n} className={`count-btn ${aiOpponentCount === n ? 'active' : ''}`} onClick={() => setAiOpponents(n)}>{n}</button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>}
+
+            {mode === 'random' && (
+              <div className="gt-setting-row gt-setting-note">
+                <b>Match size</b>
+                <span>2 players · no AI fill</span>
+              </div>
+            )}
+
+            {mode === 'friend' && <>
+              <div className="gt-setting-row">
+                <b>Total seats</b>
+                <div className="clean-chip-row">
+                  {Array.from({ length: Math.max(1, maxPlayers - 1) }, (_, i) => i + 2).map(n => (
+                    <button key={n} className={`count-btn ${playerCount === n ? 'active' : ''}`} onClick={() => updateFriendCount(n)}>{n}</button>
+                  ))}
+                </div>
+              </div>
+              <div className="gt-setting-row">
+                <b>AI fill</b>
+                <div className="clean-chip-row">
+                  {Array.from({ length: playerCount }, (_, i) => i).map(n => (
+                    <button key={n} className={`count-btn ${friendAiSeats === n ? 'active' : ''}`} onClick={() => setAiSeats(n)}>{n}</button>
+                  ))}
+                </div>
+              </div>
+            </>}
+          </div>
+
+          <aside className="gt-seat-summary">
+            <b>Players</b>
+            <SlotPreview slots={slots} />
+            {mode !== 'ai' && !access?.isFull && <p className="setup-desc">Online play needs a signed-in full access account.</p>}
+          </aside>
+        </div>
+
+        <button className="btn-primary setup-go gt-start-setup" disabled={modeUnavailable} onClick={primaryAction}>
+          {primaryLabel}
+        </button>
+      </section>
+    </div>
+  )
 }
