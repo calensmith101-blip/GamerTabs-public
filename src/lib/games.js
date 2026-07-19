@@ -1,5 +1,5 @@
 // GamerTab: Black Vault — Featured Game Registry
-// Cull pass: only the games Calen wants visible in the main app.
+// Main app visible games list.
 
 
 export const PLAY_MODE_LABELS = {
@@ -35,7 +35,7 @@ export function getGamePlayModes(gameId) {
   return GAME_PLAY_MODES[gameId] || ['single', 'ai', 'local']
 }
 
-export const GAMES = [
+const LIVE_GAMES = [
   { id: 'tictactoe', title: 'Tic Tac Toe', icon: '✖️', players: '2', type: 'Classic', status: 'live', supportsOnline: true, supportsAI: true, supportsLocal: true, desc: 'Classic 3-in-a-row battle.' },
   { id: 'connect-four', title: 'Connect 4', icon: '🔴', players: '2', type: 'Classic', status: 'live', supportsOnline: true, supportsAI: true, supportsLocal: true, desc: 'Drop discs and connect four in a row.' },
   { id: 'memory-match', title: 'Memory Match', icon: '🃏', players: '1–2', type: 'Classic', status: 'live', supportsOnline: true, supportsAI: true, supportsLocal: true, desc: 'Flip cards and match hidden pairs.' },
@@ -56,6 +56,20 @@ export const GAMES = [
   { id: 'uno-teams', title: 'UNO Teams', icon: '🤝', players: '4', type: 'Card', status: 'live', supportsOnline: true, supportsAI: true, supportsLocal: true, desc: 'UNO-style team variant. Uses the UNO engine for now.' },
   { id: 'uno-no-mercy', title: 'UNO No Mercy', icon: '🔥', players: '2–4', type: 'Card', status: 'live', supportsOnline: true, supportsAI: true, supportsLocal: true, desc: 'Harder UNO-style variant. Uses the UNO engine for now.' },
 ]
+
+export const ONLINE_READY_GAME_IDS = new Set([
+  'tictactoe',
+  'connect-four',
+  'sea-battle',
+  'chess-trainer',
+  'kingdom-conquest',
+  'city-tycoon',
+])
+
+export const GAMES = LIVE_GAMES.map(game => ({
+  ...game,
+  supportsOnline: ONLINE_READY_GAME_IDS.has(game.id),
+}))
 
 
 // 18+ virtual-credit casino lounge. No real-money deposits or withdrawals.
@@ -106,4 +120,3 @@ export const ALL_GAMES = [...GAMES, ...CASINO_GAMES, ...CONSTRUCTION_GAMES]
 
 export const getGame = (id) => ALL_GAMES.find(g => g.id === id)
 export const CATEGORIES = [...new Set(GAMES.map(g => g.type))]
-

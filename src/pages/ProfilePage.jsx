@@ -46,7 +46,6 @@ export default function ProfilePage({ session, navigate }) {
       .then(({ data }) => {
         const nextProfile = data || {
           id: session.user.id,
-          email: session.user.email,
           username: fallbackUsername(session),
           display_name: fallbackUsername(session),
           points: 0,
@@ -68,7 +67,6 @@ export default function ProfilePage({ session, navigate }) {
     const displayName = form.displayName.trim() || username
     const payload = {
       id: session.user.id,
-      email: session.user.email,
       username,
       display_name: displayName,
       town: form.town.trim(),
@@ -125,8 +123,7 @@ export default function ProfilePage({ session, navigate }) {
       .upsert({
         ...profile,
         id: session.user.id,
-        email: session.user.email,
-        username: profile?.username || fallbackUsername(session),
+          username: profile?.username || fallbackUsername(session),
         display_name: profile?.display_name || profile?.username || fallbackUsername(session),
         local_discovery_enabled: next,
         is_online: true,

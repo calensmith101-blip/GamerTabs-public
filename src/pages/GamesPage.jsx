@@ -1,9 +1,8 @@
 import { useState } from 'react'
 import { GAMES, CONSTRUCTION_GAMES, CATEGORIES, getGamePlayModes, PLAY_MODE_LABELS } from '../lib/games'
 
-const CASINO_CODE = 'pokies'
 
-export default function GamesPage({ navigate }) {
+export default function GamesPage({ navigate, access }) {
   const [filter, setFilter] = useState('All')
   const [search, setSearch] = useState('')
   const [folder, setFolder] = useState('main')
@@ -44,14 +43,21 @@ export default function GamesPage({ navigate }) {
 
   function unlockCasino(event) {
     event?.preventDefault?.()
-    if (casinoCode.trim().toLowerCase() === CASINO_CODE) {
+    if (!access?.isFull) {
+      setShowCasinoUnlock(false)
+      setCasinoCode('')
+      setCasinoError('')
+      navigate('account')
+      return
+    }
+    if (casinoCode.trim().toLowerCase() === 'confirm') {
       setShowCasinoUnlock(false)
       setCasinoCode('')
       setCasinoError('')
       navigate('play', { gameId: 'vault-casino', mode: 'alone', playerRole: 'X' })
       return
     }
-    setCasinoError('Wrong code.')
+    setCasinoError('Type CONFIRM to open this subscriber-only room.')
   }
 
   return (
@@ -74,14 +80,14 @@ export default function GamesPage({ navigate }) {
         <div className="modal-backdrop" style={{ position:'fixed', inset:0, zIndex:50, background:'rgba(0,0,0,.72)', display:'grid', placeItems:'center', padding:18 }}>
           <form onSubmit={unlockCasino} className="bv-card" style={{ width:'min(420px, 92vw)', padding:18, border:'1px solid rgba(239,68,68,.45)' }}>
             <h2 style={{ marginTop:0, color:'#fca5a5' }}>Restricted Room</h2>
-            <p style={{ color:'#aaa', fontSize:13 }}>Enter access code to open the hidden 18+ virtual-credit room.</p>
+            <p style={{ color:'#aaa', fontSize:13 }}>Subscriber-only virtual-credit room. Type CONFIRM to continue.</p>
             <input
               className="games-search"
               autoFocus
               type="password"
               value={casinoCode}
               onChange={e => setCasinoCode(e.target.value)}
-              placeholder="Access code"
+              placeholder="Type CONFIRM"
             />
             {casinoError && <p style={{ color:'#f87171', fontSize:13 }}>{casinoError}</p>}
             <div style={{ display:'flex', gap:8, marginTop:12 }}>
@@ -92,6 +98,8 @@ export default function GamesPage({ navigate }) {
         </div>
       )}
 
+
+      {!access?.isFull && <p className="demo-inline-note">Demo mode: online rooms, friends, chat, cloud saves and permanent game saves are locked until subscription is active.</p>}
       <div className="games-toolbar">
         <div className="category-tabs" style={{ marginBottom: 10 }}>
           <button className={`cat-tab ${folder === 'main' ? 'active' : ''}`} onClick={() => { setFolder('main'); setSearch('') }}>⭐ Featured Games</button>

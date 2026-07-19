@@ -1,4 +1,4 @@
-const PROFILE_KEY = 'blackvault.offline.profile.v1';
+const PROFILE_KEY = 'gamertabs.demo.profile.v1';
 
 export function isBrowserOnline() {
   if (typeof navigator === 'undefined') return true;
@@ -6,41 +6,29 @@ export function isBrowserOnline() {
 }
 
 export function createOfflineSession() {
+  return createDemoSession();
+}
+
+export function createDemoSession() {
   return {
-    offlineGuest: true,
+    demoGuest: true,
     user: {
-      id: 'offline-guest',
-      email: 'offline@blackvault.local',
-      user_metadata: { display_name: 'Offline Guest' },
+      id: 'demo-guest',
+      email: null,
+      user_metadata: { display_name: 'Demo Guest' },
     },
   };
 }
 
 export function isOfflineSession(session) {
-  return !!session?.offlineGuest;
+  return !!session?.offlineGuest || !!session?.demoGuest;
 }
 
 export function loadOfflineProfile(session) {
-  if (typeof localStorage === 'undefined') return buildDefaultProfile(session);
-  try {
-    const raw = localStorage.getItem(PROFILE_KEY);
-    if (!raw) {
-      const created = buildDefaultProfile(session);
-      saveOfflineProfile(created);
-      return created;
-    }
-    const parsed = JSON.parse(raw);
-    return { ...buildDefaultProfile(session), ...parsed };
-  } catch {
-    const created = buildDefaultProfile(session);
-    saveOfflineProfile(created);
-    return created;
-  }
+  return buildDefaultProfile(session);
 }
 
 export function saveOfflineProfile(profile) {
-  if (typeof localStorage === 'undefined') return profile;
-  localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
   return profile;
 }
 
@@ -50,11 +38,9 @@ export function clearOfflineProfile() {
 }
 
 function buildDefaultProfile(session) {
-  const fallbackName = session?.user?.user_metadata?.display_name
-    || session?.user?.email?.split('@')?.[0]
-    || 'Offline Guest';
+  const fallbackName = session?.user?.user_metadata?.display_name || 'Demo Guest';
   return {
-    id: 'offline-guest',
+    id: 'demo-guest',
     username: fallbackName,
     display_name: fallbackName,
     town: '',

@@ -2026,6 +2026,170 @@ footer {
   .clean-room-actions, .join-inline { flex-direction: column; align-items: stretch; }
 }
 
+/* GamerTabs setup polish (loaded from style.css in main.jsx) */
+.gt-simple-setup .setup-section {
+  max-width: 980px;
+  margin: 14px auto;
+  border-radius: 18px;
+  padding: 16px;
+  background: linear-gradient(180deg, rgba(19, 24, 36, 0.92), rgba(9, 12, 18, 0.94));
+  border: 1px solid rgba(248, 113, 113, 0.22);
+}
+
+.gt-play-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.gt-play-choice {
+  min-height: 124px;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.26);
+  background: linear-gradient(160deg, rgba(22, 30, 46, 0.95), rgba(12, 16, 26, 0.98));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 8px;
+  text-align: left;
+  padding: 14px;
+}
+
+.gt-play-choice span {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.gt-play-choice svg {
+  width: 28px;
+  height: 28px;
+  color: #f8fafc;
+}
+
+.gt-play-choice b {
+  font-size: 16px;
+  color: #e2e8f0;
+}
+
+.gt-play-choice small {
+  font-size: 12px;
+  color: #aeb9c8;
+  line-height: 1.4;
+}
+
+.gt-setup-controls {
+  display: grid;
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.gt-setup-controls > div > b {
+  display: block;
+  margin-bottom: 6px;
+  color: #dbeafe;
+  font-size: 13px;
+}
+
+.count-btn {
+  min-width: 42px;
+  min-height: 36px;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  background: rgba(15, 23, 42, 0.82);
+  color: #cbd5e1;
+  font-weight: 700;
+  padding: 0.45rem 0.8rem;
+}
+
+.count-btn.active {
+  background: linear-gradient(135deg, #0f766e, #0891b2) !important;
+  border-color: rgba(165, 243, 252, 0.55) !important;
+  color: #ecfeff !important;
+}
+
+.gt-quick-join {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(148, 163, 184, 0.24);
+}
+
+.gt-quick-join-title {
+  font-size: 13px;
+  color: #dbeafe;
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+.gt-quick-join-inline {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 8px;
+  align-items: center;
+}
+
+@media (max-width: 760px) {
+  .gt-play-choice-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .gt-quick-join-inline {
+    grid-template-columns: 1fr;
+  }
+}
+
+.gt-rematch-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 12px auto 0;
+  padding: 12px;
+  width: min(100%, 680px);
+  border: 1px solid rgba(250, 204, 21, 0.28);
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.84);
+}
+
+.gt-rematch-panel b,
+.gt-rematch-panel span {
+  display: block;
+}
+
+.gt-rematch-panel b {
+  color: #f8fafc;
+}
+
+.gt-rematch-panel span {
+  color: #aeb9c8;
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.gt-rematch-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.gt-rematch-panel .setup-status {
+  flex-basis: 100%;
+  margin: 0;
+}
+
+@media (max-width: 680px) {
+  .gt-rematch-panel {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .gt-rematch-actions {
+    justify-content: flex-start;
+  }
+}
+
 /* Clean 5-mode + simplified rooms/users patch */
 .game-card-modes.full-five {
   display: flex;

@@ -1,15 +1,15 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Bot, Shuffle, UserRoundPlus } from 'lucide-react'
 import { getGame, getGamePlayModes } from '../lib/games'
 
 const SEATS = ['X', 'O', 'P3', 'P4', 'P5', 'P6']
 
 const MODE_COPY = {
-  ai: { icon: 'AI', title: 'Play vs AI', desc: 'Computer opponents. Choose difficulty and seats.' },
-  local: { icon: '1D', title: 'Same Device', desc: 'Offline pass-and-play on one phone, tablet or computer.' },
+  ai: { Icon: Bot, title: 'Play vs AI', desc: 'Practice against computer opponents.' },
+  random: { Icon: Shuffle, title: 'Play Online — Random Match', desc: 'Match with another player looking for this game.' },
+  friend: { Icon: UserRoundPlus, title: 'Play Friend', desc: 'Choose friends, add players, invite, challenge or rematch.' },
   single: { icon: '1P', title: 'Solo', desc: 'Single-player mode.' },
-  friend: { icon: 'FR', title: 'Play With Friend', desc: 'Invite a saved friend on another device. AI can fill extra seats.' },
-  online: { icon: 'ON', title: 'Find Online Player', desc: 'Pick an online app user and invite them into this game.' },
-  code: { icon: '#', title: 'Private Code', desc: 'Create or join a room with a private code.' },
+  local: { icon: '1D', title: 'Same Device', desc: 'Offline pass-and-play on one phone, tablet or computer.' },
 }
 
 function maxPlayersForGame(game) {
@@ -47,7 +47,7 @@ function SlotPreview({ slots }) {
   </div>
 }
 
-export default function GameSetupPage({ navigate, params = {} }) {
+export default function GameSetupPage({ navigate, params = {}, access }) {
   const game = getGame(params.gameId)
   const [mode, setMode] = useState(params.prefillMode || null)
   const [difficulty, setDifficulty] = useState('medium')
@@ -69,6 +69,8 @@ export default function GameSetupPage({ navigate, params = {} }) {
 
   const maxPlayers = Math.min(5, maxPlayersForGame(game))
   const slots = makeSlots({ count: playerCount, mode: mode || 'local', aiSeats, localHumans })
+  const canPlayAi = allowedModes.includes('ai') || allowedModes.includes('single')
+  const onlineReady = game.supportsOnline && maxPlayers >= 2
 
   function updateCount(next) {
     const count = clampPlayerCount(next, game)
@@ -90,8 +92,12 @@ export default function GameSetupPage({ navigate, params = {} }) {
     })
   }
 
-  function openPeople(tab = 'friends') {
-    navigate('friends', { gameId: game.id, tab })
+  function openPeople(tab = 'friends', extra = {}) {
+    if (!access?.isFull) {
+      navigate('account')
+      return
+    }
+    navigate('friends', { gameId: game.id, tab, ...extra })
   }
 
   const CountControls = ({ includeLocal = false }) => <div className="gt-setup-controls">
@@ -107,26 +113,23 @@ export default function GameSetupPage({ navigate, params = {} }) {
 
     {!mode && <section className="setup-section gt-play-menu">
       <h3 className="setup-heading">How do you want to play?</h3>
-      <p className="setup-desc">Choose AI practice, same-device pass-and-play, or real users on separate devices with optional AI seats.</p>
+      <p className="setup-desc">Pick a match type for {game.title}.</p>
       <div className="gt-play-choice-grid">
-        {allowedModes.includes('ai') && <button className="gt-play-choice" onClick={() => setMode('ai')}>
-          <span>{MODE_COPY.ai.icon}</span><b>{MODE_COPY.ai.title}</b><small>{MODE_COPY.ai.desc}</small>
-        </button>}
-        {allowedModes.includes('local') && <button className="gt-play-choice" onClick={() => setMode('local')}>
-          <span>{MODE_COPY.local.icon}</span><b>{MODE_COPY.local.title}</b><small>{MODE_COPY.local.desc}</small>
-        </button>}
-        {game.supportsOnline && maxPlayers >= 2 && <button className="gt-play-choice" onClick={() => openPeople('friends')}>
-          <span>{MODE_COPY.friend.icon}</span><b>{MODE_COPY.friend.title}</b><small>{MODE_COPY.friend.desc}</small>
-        </button>}
-        {game.supportsOnline && maxPlayers >= 2 && <button className="gt-play-choice" onClick={() => openPeople('online')}>
-          <span>{MODE_COPY.online.icon}</span><b>{MODE_COPY.online.title}</b><small>{MODE_COPY.online.desc}</small>
-        </button>}
-        {game.supportsOnline && maxPlayers >= 2 && <button className="gt-play-choice" onClick={() => openPeople('resume')}>
-          <span>{MODE_COPY.code.icon}</span><b>{MODE_COPY.code.title}</b><small>{MODE_COPY.code.desc}</small>
-        </button>}
-        {allowedModes.includes('single') && <button className="gt-play-choice" onClick={() => setMode('single')}>
-          <span>{MODE_COPY.single.icon}</span><b>{MODE_COPY.single.title}</b><small>{MODE_COPY.single.desc}</small>
-        </button>}
+        <button className="gt-play-choice" disabled={!canPlayAi} onClick={() => setMode(allowedModes.includes('ai') ? 'ai' : 'single')}>
+          <MODE_COPY.ai.Icon aria-hidden="true" />
+          <b>{MODE_COPY.ai.title}</b>
+          <small>{canPlayAi ? MODE_COPY.ai.desc : 'AI play is not available for this game yet.'}</small>
+        </button>
+        <button className="gt-play-choice" disabled={!onlineReady} onClick={() => openPeople('random', { autoRandom: true })}>
+          <MODE_COPY.random.Icon aria-hidden="true" />
+          <b>{MODE_COPY.random.title}</b>
+          <small>{onlineReady ? MODE_COPY.random.desc : 'Online play is not available for this game yet.'}</small>
+        </button>
+        <button className="gt-play-choice" disabled={!onlineReady} onClick={() => openPeople('friends')}>
+          <MODE_COPY.friend.Icon aria-hidden="true" />
+          <b>{MODE_COPY.friend.title}</b>
+          <small>{onlineReady ? MODE_COPY.friend.desc : 'Friend play is not available for this game yet.'}</small>
+        </button>
       </div>
     </section>}
 
@@ -134,6 +137,6 @@ export default function GameSetupPage({ navigate, params = {} }) {
 
     {mode === 'ai' && <section className="setup-section gt-setup-card"><h3>Play vs AI</h3><div className="setup-difficulty-row">{['easy','medium','hard','expert'].map(d => <button key={d} className={`diff-btn ${difficulty === d ? 'active' : ''}`} onClick={() => setDifficulty(d)}>{d}</button>)}</div><CountControls /><button className="btn-primary setup-go" onClick={() => startOffline('ai')}>Start AI Game</button></section>}
 
-    {mode === 'local' && <section className="setup-section gt-setup-card"><h3>Same Device</h3><p className="setup-desc">Offline turns on this device. Use Play With Friend or Find Online Player for separate devices and AI fill.</p><CountControls includeLocal /><button className="btn-primary setup-go" onClick={() => startOffline('local')}>Start Same Device Game</button></section>}
+    {mode === 'local' && <section className="setup-section gt-setup-card"><h3>Same Device</h3><p className="setup-desc">Offline turns on this device.</p><CountControls includeLocal /><button className="btn-primary setup-go" onClick={() => startOffline('local')}>Start Same Device Game</button></section>}
   </div>
 }

@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react'
+import { supabase } from '../supabaseClient'
 import { getGame } from '../lib/games'
 import { useOnlineRoom } from '../hooks/useOnlineRoom'
-import { playerRoleForRoom } from '../lib/socialUtils'
+import { sendNudgeToUser } from '../lib/nudges'
+import { createRoom } from '../lib/roomUtils'
+import { getProfilesByIds, getRoomOpponentIds, playerRoleForRoom } from '../lib/socialUtils'
 
 // ─── Core games ───────────────────────────────────────────────────────────────
 import TicTacToe        from '../components/online-games/TicTacToe'
@@ -128,11 +131,130 @@ const GAME_MAP = {
   'word-quest':        WordQuest,
 }
 
-export default function GamePlayPage({ session, navigate, params }) {
+const REMATCH_SEATS = ['X', 'O', 'P3', 'P4', 'P5', 'P6']
+
+function displayUser(user) {
+  return user?.display_name || user?.username || user?.email || 'Player'
+}
+
+function getPlayableState(room) {
+  const state = room?.state && typeof room.state === 'object' ? room.state : {}
+  return state.gameState && typeof state.gameState === 'object' ? state.gameState : state
+}
+
+function roomLooksFinished(room) {
+  const state = getPlayableState(room)
+  return Boolean(
+    state?.gameOver ||
+    state?.over ||
+    state?.winner ||
+    state?.result ||
+    ['finished', 'complete', 'win', 'gameover', 'showdown'].includes(String(state?.phase || '').toLowerCase()) ||
+    ['finished', 'complete'].includes(String(room?.status || '').toLowerCase())
+  )
+}
+
+function buildRematchSlots(room, userId, target) {
+  const previousSlots = Array.isArray(room?.state?.playerSlots) ? room.state.playerSlots : []
+  const aiSlots = previousSlots.filter(slot => slot?.kind === 'ai').slice(0, 4)
+  return [
+    { seat: 'X', kind: 'human', userId, label: 'You' },
+    { seat: 'O', kind: 'open', userId: null, invitedUserId: target?.id || null, label: target ? displayUser(target) : 'Open player' },
+    ...aiSlots.map((slot, index) => ({
+      seat: REMATCH_SEATS[index + 2] || `P${index + 3}`,
+      kind: 'ai',
+      userId: null,
+      label: slot.label || 'AI Player',
+    })),
+  ]
+}
+
+function RematchPanel({ room, session, game, navigate }) {
+  const userId = session?.user?.id
+  const [loading, setLoading] = useState(false)
+  const [status, setStatus] = useState('')
+
+  if (!roomLooksFinished(room) || !userId || !game?.id) return null
+
+  async function offerRematch() {
+    const opponentIds = getRoomOpponentIds(room, userId)
+    const targetId = opponentIds[0]
+    if (!targetId) {
+      setStatus('No previous opponent found for this rematch.')
+      return
+    }
+
+    setLoading(true)
+    setStatus('')
+    try {
+      const profiles = await getProfilesByIds([targetId])
+      const target = { ...(profiles[targetId] || {}), id: targetId }
+      const slots = buildRematchSlots(room, userId, target)
+      const aiSeats = slots.filter(slot => slot.kind === 'ai').length
+      const newRoom = await createRoom({
+        userId,
+        username: displayUser(session?.user),
+        gameType: game.id,
+        isPublic: true,
+        initialState: {
+          activeGameId: game.id,
+          roomKind: 'rematch',
+          members: [userId],
+          invitedUserId: targetId,
+          invitedUserIds: [targetId],
+          playerSeats: { X: userId },
+          playerSlots: slots,
+          setup: { mode: 'localLive', playerCount: slots.length, aiSeats, difficulty: 'medium' },
+          rematch: { fromRoomCode: room.room_code, offeredAt: new Date().toISOString(), targetIds: [targetId] },
+          createdAt: new Date().toISOString(),
+        },
+      })
+
+      await sendNudgeToUser(
+        supabase,
+        userId,
+        targetId,
+        game.id,
+        newRoom.room_code,
+        `${displayUser(session?.user)} challenged you to a rematch in ${game.title}`
+      )
+
+      navigate('play', {
+        gameId: game.id,
+        mode: 'localLive',
+        roomCode: newRoom.room_code,
+        playerRole: 'X',
+        playerCount: slots.length,
+        playerSlots: slots,
+      })
+    } catch (err) {
+      setStatus(err.message || 'Could not offer rematch.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="gt-rematch-panel">
+      <div>
+        <b>Play again?</b>
+        <span>Send a fresh rematch challenge to the same opponent.</span>
+      </div>
+      <div className="gt-rematch-actions">
+        <button className="btn-primary small" disabled={loading} onClick={offerRematch}>{loading ? 'Sending...' : 'Offer Rematch'}</button>
+        <button className="btn-ghost small" onClick={() => navigate('setup', { gameId: game.id })}>Change Mode</button>
+      </div>
+      {status && <p className="setup-status">{status}</p>}
+    </div>
+  )
+}
+
+export default function GamePlayPage({ session, access, navigate, params }) {
   const { gameId, mode, difficulty, roomCode, playerRole, playerCount } = params
   const game = getGame(gameId)
   const [resetKey, setResetKey] = useState(0)
   const isOnline = (mode === 'online' || mode === 'localLive') && !!roomCode
+  const requiresFullAccess = isOnline || gameId === 'vault-casino'
   const onlineRoom = useOnlineRoom(isOnline ? roomCode : null)
 
   useEffect(() => {
@@ -148,6 +270,22 @@ export default function GamePlayPage({ session, navigate, params }) {
       } catch {}
     }
   }, [])
+
+  if (requiresFullAccess && !access?.isFull) {
+    return (
+      <div className="page access-locked-page">
+        <div className="access-locked-card">
+          <h2>Full access required</h2>
+          <p>This game mode is available to active GamerTabs subscribers only.</p>
+          <p>Demo mode still lets you play local, solo and AI games without permanent saves.</p>
+          <div className="commercial-access-actions">
+            <button onClick={() => navigate('games')}>Back to demo games</button>
+            <button onClick={() => navigate('account')}>Sign in / upgrade</button>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   if (!game) {
     if (gameId === 'lobby' || gameId === 'room') {
@@ -224,6 +362,7 @@ export default function GamePlayPage({ session, navigate, params }) {
       <div className="play-layout-grid">
         <div className="play-main-panel">
           <GameComponent key={resetKey} {...sharedProps} />
+          {isOnline && <RematchPanel room={room} session={session} game={game} navigate={navigate} />}
         </div>
 
       </div>

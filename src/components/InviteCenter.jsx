@@ -127,7 +127,8 @@ export default function InviteCenter({ session, navigate }) {
     setStatus('Joining invite…')
     try {
       const code = normaliseCode(nudge.room_code)
-      let room = await joinUniversalRoom(code, userId)
+      const username = session?.user?.user_metadata?.display_name || session?.user?.email || userId
+      let room = await joinUniversalRoom(code, userId, username)
       const gameId = getGame(room.game_type) && room.game_type !== 'room' ? room.game_type : nudge.game_id
       room = await setRoomGame(code, gameId)
       try { await acceptNudge(supabase, nudge.id) } catch (_) {}

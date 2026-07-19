@@ -213,8 +213,9 @@ function Grid({ title, grid, shots, own, onFire, disabled }) {
 }
 
 export default function SeaBattle({ gameMode = 'ai', roomCode, playerRole = 'X', game, onBack, onExit }) {
-  const online = String(gameMode || '').includes('online') && roomCode
-  const aiMode = String(gameMode || '').includes('ai') || String(gameMode || '').includes('alone')
+  const modeText = String(gameMode || '').toLowerCase()
+  const online = (modeText.includes('online') || modeText.includes('live')) && roomCode
+  const aiMode = modeText.includes('ai') || modeText.includes('alone')
   const initial = useMemo(() => createState(gameMode), [gameMode, roomCode])
   const onlineGame = useOnlineGame(online ? roomCode : null, initial)
   const [localState, setLocalState] = useState(() => {

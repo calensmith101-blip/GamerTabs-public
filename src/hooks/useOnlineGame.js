@@ -4,7 +4,7 @@ import { supabase } from '../supabaseClient'
 const ROOM_META_KEYS = [
   'roomKind', 'name', 'activeGameId', 'members', 'playerSeats', 'playerSlots',
   'createdAt', 'invitedUserId', 'invitedUserIds', 'lastJoinedAt', 'setup',
-  'lastActivity'
+  'lastActivity', 'matchmaking', 'rematch'
 ]
 
 function splitRoomState(rawState, initialState) {

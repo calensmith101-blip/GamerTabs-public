@@ -1,14 +1,15 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { GAMES, getGame } from '../lib/games'
 import { sendNudgeToUser, fetchPendingNudges, acceptNudge, declineNudge } from '../lib/nudges'
-import { createInitialState } from '../lib/roomState'
 import { createRoom, normaliseCode, closeMyOpenRooms } from '../lib/roomUtils'
 import {
   blockUser,
   closeUniversalRoom,
   ensureProfile,
+  getRoomOpponentIds,
   getProfilesByIds,
+  joinRandomMatch,
   joinUniversalRoom,
   leaveUniversalRoom,
   listActiveLiveGames,
@@ -24,8 +25,23 @@ import {
   setDiscovery,
 } from '../lib/socialUtils'
 
-const TABS = ['friends', 'online', 'requests', 'chat', 'resume', 'visibility']
+const TABS = ['friends', 'add', 'requests', 'active', 'random', 'chat', 'visibility']
+const TAB_LABELS = {
+  friends: 'Friends',
+  add: 'Add Players',
+  requests: 'Invites',
+  active: 'Active & Rematches',
+  random: 'Random Match',
+  chat: 'Chat',
+  visibility: 'Visibility',
+}
 const SEATS = ['X', 'O', 'P3', 'P4', 'P5', 'P6']
+
+function normaliseTab(tab) {
+  if (tab === 'online') return 'add'
+  if (tab === 'resume') return 'active'
+  return TABS.includes(tab) ? tab : 'friends'
+}
 
 function displayUser(user) {
   return user?.display_name || user?.username || user?.email || 'Player'
@@ -87,10 +103,34 @@ function buildLiveSlots({ userId, target, playerCount, aiSeats }) {
   })
 }
 
+function buildRoomMetaState({ gameId, userId, targetIds = [], slots, roomKind, playerCount, aiSeats }) {
+  const invitedUserIds = targetIds.filter(Boolean)
+  return {
+    activeGameId: gameId,
+    roomKind,
+    members: [userId],
+    invitedUserId: invitedUserIds[0] || null,
+    invitedUserIds,
+    playerSeats: { X: userId },
+    playerSlots: slots,
+    setup: {
+      mode: roomKind === 'random-match' ? 'onlineRandom' : 'localLive',
+      playerCount,
+      aiSeats,
+      difficulty: 'medium',
+    },
+    matchmaking: roomKind === 'random-match' ? { status: 'waiting', createdAt: new Date().toISOString() } : null,
+    rematch: roomKind === 'rematch' ? { offeredAt: new Date().toISOString(), targetIds: invitedUserIds } : null,
+    createdAt: new Date().toISOString(),
+  }
+}
+
 export default function FriendsPage({ session, navigate, params = {} }) {
   const userId = session?.user?.id
   const games = useMemo(liveGameList, [])
-  const [tab, setTab] = useState(params.tab || 'friends')
+  const autoJoinRef = useRef('')
+  const autoRandomRef = useRef('')
+  const [tab, setTab] = useState(normaliseTab(params.tab))
   const [gameId, setGameId] = useState(params.gameId || games[0]?.id || 'tictactoe')
   const [profile, setProfile] = useState(null)
   const [players, setPlayers] = useState([])
@@ -101,7 +141,7 @@ export default function FriendsPage({ session, navigate, params = {} }) {
   const [activeGames, setActiveGames] = useState([])
   const [search, setSearch] = useState('')
   const [country, setCountry] = useState('')
-  const [joinCode, setJoinCode] = useState('')
+  const [joinCode, setJoinCode] = useState(params.joinCode || '')
   const [chatTarget, setChatTarget] = useState(null)
   const [chatText, setChatText] = useState('')
   const [messages, setMessages] = useState([])
@@ -119,8 +159,12 @@ export default function FriendsPage({ session, navigate, params = {} }) {
   }, [params.gameId])
 
   useEffect(() => {
-    if (params.tab) setTab(params.tab)
+    if (params.tab) setTab(normaliseTab(params.tab))
   }, [params.tab])
+
+  useEffect(() => {
+    if (params.joinCode) setJoinCode(normaliseCode(params.joinCode))
+  }, [params.joinCode])
 
   useEffect(() => {
     if (!selectedGame) return
@@ -135,13 +179,34 @@ export default function FriendsPage({ session, navigate, params = {} }) {
     const timer = setInterval(() => {
       refreshInvites()
       refreshActiveGames()
-      if (tab === 'online') refreshPlayers()
+      if (tab === 'add') refreshPlayers()
       if (tab === 'friends') refreshFriends()
       if (tab === 'requests') refreshRequests()
       if (tab === 'chat') refreshMessages()
     }, 10000)
     return () => clearInterval(timer)
   }, [userId, tab, gameId])
+
+  useEffect(() => {
+    if (!userId || !params?.autoJoin || !params?.joinCode) return
+    const clean = normaliseCode(params.joinCode)
+    if (!clean) return
+    const key = `${userId}:${clean}`
+    if (autoJoinRef.current === key) return
+    autoJoinRef.current = key
+    setTab('active')
+    setJoinCode(clean)
+    joinByCode(clean)
+  }, [userId, params?.autoJoin, params?.joinCode])
+
+  useEffect(() => {
+    if (!userId || !params?.autoRandom || !selectedGame?.id) return
+    const key = `${userId}:${selectedGame.id}`
+    if (autoRandomRef.current === key) return
+    autoRandomRef.current = key
+    setTab('random')
+    startRandomMatch()
+  }, [userId, params?.autoRandom, selectedGame?.id])
 
   async function boot() {
     try {
@@ -216,42 +281,102 @@ export default function FriendsPage({ session, navigate, params = {} }) {
     })
   }
 
-  async function createInvite(target = null) {
-    if (!userId || !selectedGame) return
+  async function createInvite(target = null, gameOverride = selectedGame, roomKind = 'live-match') {
+    const inviteGame = gameOverride || selectedGame
+    if (!userId || !inviteGame) return
     setLoading(true)
     setStatus('')
     try {
-      const total = clampSeatCount(playerCount, selectedGame)
+      const total = clampSeatCount(playerCount, inviteGame)
       const aiCount = Math.max(0, Math.min(total - 1, Number(aiSeats) || 0))
       const slots = buildLiveSlots({ userId, target, playerCount: total, aiSeats: aiCount })
       const targetName = target ? displayUser(target) : 'open player'
       const room = await createRoom({
         userId,
         username: displayUser(profile || session?.user),
-        gameType: selectedGame.id,
+        gameType: inviteGame.id,
         // RLS can hide a private room from the invited user before they have a
         // room_members row. Keep invite rooms code-joinable so the second
         // device can claim its seat; the random code is still required.
         isPublic: true,
-        initialState: {
-          ...createInitialState(selectedGame.id),
-          activeGameId: selectedGame.id,
-          roomKind: 'live-match',
-          members: [userId],
-          invitedUserId: target?.id || null,
-          invitedUserIds: target?.id ? [target.id] : [],
-          playerSeats: { X: userId },
-          playerSlots: slots,
-          setup: { mode: 'localLive', playerCount: total, aiSeats: aiCount, difficulty: 'medium' },
-        },
+        initialState: buildRoomMetaState({
+          gameId: inviteGame.id,
+          userId,
+          targetIds: target?.id ? [target.id] : [],
+          slots,
+          roomKind,
+          playerCount: total,
+          aiSeats: aiCount,
+        }),
       })
       if (target?.id) {
-        await sendNudgeToUser(supabase, userId, target.id, selectedGame.id, room.room_code, `${displayUser(profile)} invited you to ${selectedGame.title}`)
+        const action = roomKind === 'rematch' ? 'challenged you to a rematch in' : 'invited you to'
+        await sendNudgeToUser(supabase, userId, target.id, inviteGame.id, room.room_code, `${displayUser(profile)} ${action} ${inviteGame.title}`)
       }
-      setStatus(target ? `Invite sent to ${targetName}. Room ${room.room_code}.` : `Open room ${room.room_code} created.`)
+      setStatus(target ? `${roomKind === 'rematch' ? 'Rematch' : 'Invite'} sent to ${targetName}. Room ${room.room_code}.` : `Open room ${room.room_code} created.`)
       launch(room, 'X')
     } catch (err) {
       setStatus(err.message || 'Could not create invite.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function startRandomMatch() {
+    if (!userId || !selectedGame) return
+    setLoading(true)
+    setStatus('Looking for another player...')
+    try {
+      const username = displayUser(profile || session?.user)
+      const matchedRoom = await joinRandomMatch({ userId, gameId: selectedGame.id, username })
+      if (matchedRoom) {
+        setStatus(`Matched in room ${matchedRoom.room_code}.`)
+        launch(matchedRoom, playerRoleForRoom(matchedRoom, userId))
+        return
+      }
+
+      const slots = buildLiveSlots({ userId, target: null, playerCount: 2, aiSeats: 0 }).map(slot => (
+        slot.seat === 'O' ? { ...slot, label: 'Random opponent' } : slot
+      ))
+      const room = await createRoom({
+        userId,
+        username,
+        gameType: selectedGame.id,
+        isPublic: true,
+        initialState: buildRoomMetaState({
+          gameId: selectedGame.id,
+          userId,
+          slots,
+          roomKind: 'random-match',
+          playerCount: 2,
+          aiSeats: 0,
+        }),
+      })
+      setStatus(`Waiting for a random opponent in room ${room.room_code}.`)
+      launch(room, 'X')
+    } catch (err) {
+      setStatus(err.message || 'Could not start random match.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function createRematch(room) {
+    if (!room) return
+    setLoading(true)
+    setStatus('')
+    try {
+      const game = getGame(room.game_type) || selectedGame
+      const opponentIds = getRoomOpponentIds(room, userId)
+      const profiles = await getProfilesByIds(opponentIds)
+      const target = opponentIds[0] ? { ...(profiles[opponentIds[0]] || {}), id: opponentIds[0] } : null
+      if (target?.id) {
+        await createInvite(target, game, 'rematch')
+      } else {
+        setStatus('No previous opponent found for that rematch.')
+      }
+    } catch (err) {
+      setStatus(err.message || 'Could not create rematch.')
     } finally {
       setLoading(false)
     }
@@ -263,7 +388,7 @@ export default function FriendsPage({ session, navigate, params = {} }) {
     setLoading(true)
     setStatus('')
     try {
-      const room = await joinUniversalRoom(clean, userId)
+      const room = await joinUniversalRoom(clean, userId, displayUser(profile || session?.user))
       launch(room, playerRoleForRoom(room, userId))
     } catch (err) {
       setStatus(err.message || 'Could not join room.')
@@ -402,9 +527,9 @@ export default function FriendsPage({ session, navigate, params = {} }) {
         <small>{placeLabel(user)}</small>
       </div>
       <div className="gt-social-actions">
-        <button className="btn-primary small" disabled={loading} onClick={() => createInvite(user)}>Invite</button>
+        <button className="btn-primary small" disabled={loading} onClick={() => createInvite(user)}>Challenge</button>
         <button className="btn-ghost small" onClick={() => openChat(user)}>Message</button>
-        {!friend && <button className="btn-ghost small" onClick={() => addFriend(user)}>Friend</button>}
+        {!friend && <button className="btn-ghost small" onClick={() => addFriend(user)}>Add Friend</button>}
         {friend && <button className="btn-ghost small" onClick={() => removeSavedFriend(user)}>Remove</button>}
         <button className="btn-ghost small" onClick={() => blockPlayer(user)}>Block</button>
       </div>
@@ -413,8 +538,8 @@ export default function FriendsPage({ session, navigate, params = {} }) {
 
   return <div className="page gt-social-page">
     <div className="page-header">
-      <button className="btn-back" onClick={() => navigate('home')}>Home</button>
-      <h2 className="page-title">Friends & Live Play</h2>
+      <button className="btn-back" onClick={() => navigate('games')}>Games</button>
+      <h2 className="page-title">Play Friend</h2>
     </div>
 
     <section className="gt-social-panel">
@@ -422,7 +547,8 @@ export default function FriendsPage({ session, navigate, params = {} }) {
         <select className="games-search" value={gameId} onChange={e => setGameId(e.target.value)}>
           {games.map(game => <option key={game.id} value={game.id}>{game.title}</option>)}
         </select>
-        <button className="btn-primary" disabled={loading} onClick={() => createInvite(null)}>Create Open Room</button>
+        <button className="btn-primary" disabled={loading} onClick={startRandomMatch}>Random Match</button>
+        <button className="btn-ghost" disabled={loading} onClick={() => createInvite(null)}>Create Invite Code</button>
       </div>
       <div className="gt-match-builder">
         <div>
@@ -467,11 +593,11 @@ export default function FriendsPage({ session, navigate, params = {} }) {
     </section>
 
     <div className="gt-social-tabs">
-      {TABS.map(id => <button key={id} className={tab === id ? 'active' : ''} onClick={() => setTab(id)}>{id === 'online' ? 'Online Players' : id === 'resume' ? 'Resume Games' : id}</button>)}
+      {TABS.map(id => <button key={id} className={tab === id ? 'active' : ''} onClick={() => setTab(id)}>{TAB_LABELS[id] || id}</button>)}
     </div>
 
-    {tab === 'online' && <section className="gt-social-panel">
-      <h3>Online Players</h3>
+    {tab === 'add' && <section className="gt-social-panel">
+      <h3>Add Players</h3>
       <div className="finder-toolbar simple">
         <input className="games-search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search username or town" />
         <input className="games-search" value={country} onChange={e => setCountry(e.target.value)} placeholder="Country" />
@@ -482,7 +608,7 @@ export default function FriendsPage({ session, navigate, params = {} }) {
 
     {tab === 'friends' && <section className="gt-social-panel">
       <h3>Friends</h3>
-      <div className="gt-user-list">{friends.map(friend => <UserRow key={friend.id} user={friend} friend />)}{friends.length === 0 && <p className="empty-state">No friends yet. Add players from World Players or accept requests.</p>}</div>
+      <div className="gt-user-list">{friends.map(friend => <UserRow key={friend.id} user={friend} friend />)}{friends.length === 0 && <p className="empty-state">No friends yet. Add players from Add Players or accept requests.</p>}</div>
     </section>}
 
     {tab === 'requests' && <section className="gt-social-panel">
@@ -508,18 +634,26 @@ export default function FriendsPage({ session, navigate, params = {} }) {
       })}{requests.outgoing.length === 0 && <p className="empty-state">No sent requests.</p>}</div>
     </section>}
 
-    {tab === 'resume' && <section className="gt-social-panel">
-      <h3>My Active Games / Open Rooms</h3>
-      <p className="setup-desc">You can have up to 3 waiting/open games. Active and paused games stay here so you can resume them later.</p>
+    {tab === 'active' && <section className="gt-social-panel">
+      <h3>Active Games & Rematches</h3>
+      <p className="setup-desc">Resume live games, leave old rooms, or challenge a previous opponent again.</p>
       <button className="btn-ghost small" onClick={clearWaitingGames}>Clear Old Waiting Games</button>
       <div className="gt-user-list">{activeGames.map(room => <div key={room.id || room.room_code} className="gt-social-user-tile">
         <div className="gt-social-user-main"><b>{getGame(room.game_type)?.title || room.game_type || 'Game'} - {room.room_code}</b><span>{room.status} - updated {seenLabel(room.updated_at || room.created_at)}</span></div>
         <div className="gt-social-actions">
           <button className="btn-primary small" onClick={() => launch(room, playerRoleForRoom(room, userId))}>Resume</button>
+          <button className="btn-ghost small" disabled={loading} onClick={() => createRematch(room)}>Rematch</button>
           <button className="btn-ghost small" onClick={() => leaveGame(room)}>Leave</button>
           {(room.host_id === userId || room.player_x === userId) && <button className="btn-ghost small" onClick={() => closeGame(room)}>Close Room</button>}
         </div>
       </div>)}{activeGames.length === 0 && <p className="empty-state">No saved live games yet.</p>}</div>
+    </section>}
+
+    {tab === 'random' && <section className="gt-social-panel">
+      <h3>Random Match</h3>
+      <p className="setup-desc">Find another player currently looking for {selectedGame?.title || 'this game'}.</p>
+      <button className="btn-primary" disabled={loading} onClick={startRandomMatch}>{loading ? 'Finding Match...' : 'Find Random Match'}</button>
+      {status && <p className="setup-status">{status}</p>}
     </section>}
 
     {tab === 'chat' && <section className="gt-social-panel">

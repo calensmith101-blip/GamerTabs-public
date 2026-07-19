@@ -371,3 +371,106 @@
     grid-template-columns: 1fr;
   }
 }
+
+.commercial-access-banner {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(255,255,255,.12);
+  background: linear-gradient(90deg, rgba(13,17,38,.96), rgba(38,24,70,.96));
+  color: #fff;
+  font-size: 13px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.commercial-access-banner strong { display: block; margin-bottom: 2px; }
+.commercial-access-banner.expired { background: linear-gradient(90deg, rgba(82,22,22,.96), rgba(44,20,20,.96)); }
+.commercial-access-banner.warning { background: linear-gradient(90deg, rgba(92,63,12,.96), rgba(47,35,14,.96)); }
+.commercial-access-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.commercial-access-actions button,
+.auth-link-button {
+  border: 1px solid rgba(255,255,255,.25);
+  border-radius: 10px;
+  background: rgba(255,255,255,.12);
+  color: #fff;
+  padding: 8px 11px;
+  cursor: pointer;
+  font-weight: 700;
+}
+.auth-link-button { width: 100%; margin-top: 8px; }
+.demo-inline-note {
+  margin: 8px 0 12px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 12px;
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.78);
+}
+.access-locked-page { display: grid; place-items: center; min-height: 50vh; }
+.access-locked-card {
+  max-width: 520px;
+  padding: 24px;
+  border-radius: 18px;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.12);
+  color: #fff;
+}
+@media (max-width: 760px) {
+  .commercial-access-banner { align-items: flex-start; flex-direction: column; }
+}
+
+.commercial-home-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 14px 0;
+  padding: 14px;
+  border: 1px solid rgba(255, 215, 128, 0.28);
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(255, 193, 7, 0.14), rgba(20, 12, 32, 0.72));
+  box-shadow: 0 12px 28px rgba(0,0,0,.25);
+}
+
+.commercial-home-card strong {
+  color: #ffd884;
+  font-size: 1rem;
+}
+
+.commercial-home-card span {
+  color: rgba(255,255,255,.82);
+  line-height: 1.45;
+}
+
+.commercial-auth-steps {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.commercial-auth-steps div {
+  display: grid;
+  grid-template-columns: 30px 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 12px;
+  background: rgba(255,255,255,.05);
+}
+
+.commercial-auth-steps strong {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: rgba(255, 216, 132, .18);
+  color: #ffd884;
+}
+
+.account-panel .auth-submit + .auth-submit {
+  margin-top: 10px;
+}

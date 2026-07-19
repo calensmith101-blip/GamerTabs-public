@@ -12,15 +12,22 @@ import FriendsPage       from './pages/FriendsPage'
 import InviteCenter      from './components/InviteCenter'
 import { useLocation }   from './hooks/useLocation'
 import { useOffline }    from './hooks/useOffline'
-import { createOfflineSession } from './lib/offline'
+import { createDemoSession } from './lib/offline'
+import { useCommercialAccess } from './hooks/useCommercialAccess'
+import { isFullAccess } from './lib/accessControl'
+import { clearDemoGameStorage, disableDemoStorageGuard, enableDemoStorageGuard } from './lib/demoStorageGuard'
+import { disableCloudSaveSync, enableCloudSaveSync, restoreCloudSaves } from './lib/cloudSaveSync'
+import AccessBanner from './components/AccessBanner'
+import AccessGate from './components/AccessGate'
 
 export default function App() {
-  const [session, setSession]         = useState(null)
+  const [session, setSession]         = useState(() => createDemoSession())
   const [authLoading, setAuthLoading] = useState(true)
   const [page, setPage]               = useState('home')
   const [pageParams, setPageParams]   = useState({})
   const [navStack, setNavStack]         = useState([{ page: 'home', params: {} }])
   const offline = useOffline()
+  const { access, loading: accessLoading } = useCommercialAccess(session)
 
   // ── Auth state ──────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -32,7 +39,7 @@ export default function App() {
     supabase.auth
       .getSession()
       .then(({ data: { session } }) => {
-        setSession(session)
+        setSession(session || createDemoSession())
         setAuthLoading(false)
       })
       .catch(() => {
@@ -41,14 +48,14 @@ export default function App() {
       })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
-      setSession(session)
+      setSession(session || createDemoSession())
     })
     return () => subscription.unsubscribe()
   }, [])
 
   // ── Online presence heartbeat ────────────────────────────────────────────────
   useEffect(() => {
-    if (!session || offline || !hasSupabaseConfig || !supabase) return
+    if (!session || session.demoGuest || offline || !hasSupabaseConfig || !supabase || !isFullAccess(access)) return
 
     const touchOnline = async () => {
       try {
@@ -86,10 +93,34 @@ export default function App() {
           .then?.(() => {})
       } catch (_) {}
     }
-  }, [session, offline])
+  }, [session, offline, access])
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function configureStorage() {
+      if (access?.isFull && session?.access_token) {
+        disableDemoStorageGuard()
+        await restoreCloudSaves(session.access_token)
+        if (!cancelled) enableCloudSaveSync(session.access_token)
+        return
+      }
+
+      disableCloudSaveSync()
+      clearDemoGameStorage()
+      enableDemoStorageGuard()
+    }
+
+    configureStorage()
+    return () => {
+      cancelled = true
+      disableCloudSaveSync()
+      if (!access?.isFull) disableDemoStorageGuard()
+    }
+  }, [access?.mode, session?.access_token])
 
   // Location tracking (online-only — hook already guards internally)
-  useLocation(session?.user?.id)
+  useLocation(access?.isFull ? session?.user?.id : null)
 
   // ── Navigation ──────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -128,7 +159,7 @@ export default function App() {
   }, [])
 
   // ── Loading / auth guard ────────────────────────────────────────────────────
-  if (authLoading) {
+  if (authLoading || accessLoading) {
     return (
       <div className="auth-wrapper">
         <div className="loading-block">Entering the Vault…</div>
@@ -136,20 +167,13 @@ export default function App() {
     )
   }
 
-  if (!session) {
-    return (
-      <AuthPanel
-        offlineAvailable={!hasSupabaseConfig || offline}
-        onContinueOffline={() => setSession(createOfflineSession())}
-      />
-    )
-  }
 
   // ── Determine if current gameMode requires internet ─────────────────────────
   const isOnlineGameMode = pageParams?.mode === 'online' || pageParams?.mode === 'localLive'
 
   return (
     <div className="app-root">
+      <AccessBanner access={access} session={session} navigate={navigate} />
       {/* Offline banner — fixed top, appears automatically */}
       <OfflineBanner />
 
@@ -161,12 +185,13 @@ export default function App() {
       {page === 'home' && (
         <HomePage
           session={session}
+          access={access}
           navigate={navigate}
         />
       )}
 
       {page === 'games' && (
-        <GamesPage navigate={navigate} />
+        <GamesPage navigate={navigate} access={access} />
       )}
 
       {/* Setup page: soft-block when offline + online mode selected */}
@@ -176,7 +201,7 @@ export default function App() {
           message="Multiplayer rooms require an internet connection"
           onBack={() => navigate('games')}
         >
-          <GameSetupPage session={session} navigate={navigate} params={pageParams} />
+          <GameSetupPage session={session} access={access} navigate={navigate} params={pageParams} />
         </OfflineGuard>
       )}
 
@@ -188,20 +213,32 @@ export default function App() {
             onBack={() => navigate('games')}
           />
         ) : (
-          <GamePlayPage session={session} navigate={navigate} params={pageParams} />
+          <GamePlayPage session={session} access={access} navigate={navigate} params={pageParams} />
         )
       )}
 
       {page === 'profile' && (
-        <ProfilePage session={session} navigate={navigate} />
+        <ProfilePage session={session} access={access} navigate={navigate} />
       )}
 
 
       {(page === 'friends' || page === 'friends-hub' || page === 'rooms') && (
-        <FriendsPage session={session} navigate={navigate} params={pageParams} />
+        <AccessGate access={access} feature="Friends, online rooms and live chat" navigate={navigate}>
+          <FriendsPage session={session} access={access} navigate={navigate} params={pageParams} />
+        </AccessGate>
       )}
 
-      {!offline && session && <InviteCenter session={session} navigate={navigate} />}
+      {page === 'account' && (
+        <AuthPanel
+          session={session}
+          access={access}
+          navigate={navigate}
+          offlineAvailable
+          onContinueOffline={() => setSession(createDemoSession())}
+        />
+      )}
+
+      {!offline && session && access?.isFull && <InviteCenter session={session} navigate={navigate} />}
     </div>
   )
 }

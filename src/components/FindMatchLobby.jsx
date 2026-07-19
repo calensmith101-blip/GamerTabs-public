@@ -30,13 +30,13 @@ export default function FindMatchLobby({ session, navigate, gameId }) {
     try {
       let q = supabase
         .from('profiles')
-        .select('id, email, username, display_name, town, suburb, state, country, is_online, last_seen, local_discovery_enabled')
+        .select('id, username, display_name, town, suburb, state, country, is_online, last_seen, local_discovery_enabled')
         .neq('id', session.user.id)
         .order('last_seen', { ascending: false, nullsFirst: false })
         .limit(80)
 
       const term = search.trim().replace(/[,()]/g, ' ')
-      if (term) q = q.or(`username.ilike.%${term}%,display_name.ilike.%${term}%,email.ilike.%${term}%,town.ilike.%${term}%,suburb.ilike.%${term}%,state.ilike.%${term}%,country.ilike.%${term}%`)
+      if (term) q = q.or(`username.ilike.%${term}%,display_name.ilike.%${term}%,town.ilike.%${term}%,suburb.ilike.%${term}%,state.ilike.%${term}%,country.ilike.%${term}%`)
       if (country.trim()) q = q.ilike('country', `%${country.trim()}%`)
       if (state.trim()) q = q.ilike('state', `%${state.trim()}%`)
       if (suburb.trim()) q = q.or(`town.ilike.%${suburb.trim()}%,suburb.ilike.%${suburb.trim()}%`)
@@ -99,7 +99,7 @@ export default function FindMatchLobby({ session, navigate, gameId }) {
   return (
     <div className="simple-player-finder">
       <div className="finder-toolbar">
-        <input className="games-search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search name, username, email or suburb" />
+        <input className="games-search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search name, username or suburb" />
         <button className="btn-primary" onClick={loadPlayers} disabled={loading}>Search</button>
       </div>
       <div className="finder-filters">
@@ -117,7 +117,7 @@ export default function FindMatchLobby({ session, navigate, gameId }) {
       ) : (
         <div className="simple-player-list">
           {players.map(player => {
-            const name = player.display_name || player.username || player.email || 'Player'
+            const name = player.display_name || player.username || 'Player'
             const place = [player.suburb || player.town, player.state, player.country].filter(Boolean).join(', ')
             return (
               <div key={player.id} className="simple-player-row">

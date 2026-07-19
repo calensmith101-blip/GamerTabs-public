@@ -3,11 +3,12 @@ import { supabase } from '../supabaseClient'
 import { deriveStats } from '../lib/scoring'
 import { clearOfflineProfile, isOfflineSession, loadOfflineProfile } from '../lib/offline'
 
-export default function HomePage({ session, navigate }) {
+export default function HomePage({ session, navigate, access }) {
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
   const [localDiscoveryEnabled, setLocalDiscoveryEnabled] = useState(() => localStorage.getItem('gamertab_local_discovery') === 'true')
-  const offline = isOfflineSession(session)
+  const demoSession = isOfflineSession(session)
+  const offline = demoSession || !access?.isFull
 
   useEffect(() => {
     const load = async () => {
@@ -57,9 +58,9 @@ export default function HomePage({ session, navigate }) {
   }
 
   const handleSignOut = async () => {
-    if (offline) {
+    if (demoSession) {
       clearOfflineProfile()
-      window.location.reload()
+      navigate('account')
       return
     }
     await supabase.auth.signOut()
@@ -84,7 +85,7 @@ export default function HomePage({ session, navigate }) {
               <span className="avatar-icon">🧙</span>
               <div className="avatar-info">
                 <h2 className="avatar-name">{profile?.username || session?.user?.email}</h2>
-                <span className="avatar-level">Level {level} · {crowns} 👑 {offline ? '· Offline' : ''}</span>
+                <span className="avatar-level">Level {level} · {crowns} 👑 {offline ? '· Demo' : ''}</span>
               </div>
             </div>
 
@@ -102,10 +103,20 @@ export default function HomePage({ session, navigate }) {
 
             <div className="recent-match">
               <span className="recent-label">Mode</span>
-              <span className="recent-value">{offline ? 'Offline local / AI play ready' : 'Online vault connected'}</span>
+              <span className="recent-value">{offline ? 'Demo local / AI play ready' : 'Online vault connected'}</span>
             </div>
 
           </div>
+
+          {offline && (
+            <div className="commercial-home-card">
+              <strong>{demoSession ? 'Demo mode active' : 'Account signed in · subscription required'}</strong>
+              <span>Full GamerTabs unlocks after account login and verified Stripe checkout. Online rooms, friends, chat and cloud saves stay locked until the backend confirms payment.</span>
+              <button className="home-nav-btn primary" onClick={() => navigate('account')}>
+                <span className="nav-btn-icon">🔐</span><span>{demoSession ? 'Sign in / create account' : 'Upgrade / unlock full access'}</span>
+              </button>
+            </div>
+          )}
 
           <div className="home-nav">
             <button className="home-nav-btn primary" onClick={() => navigate('games')}>
@@ -114,8 +125,11 @@ export default function HomePage({ session, navigate }) {
             <button className="home-nav-btn" onClick={() => navigate('profile')}>
               <span className="nav-btn-icon">👤</span><span>My Profile</span>
             </button>
+            <button className="home-nav-btn" onClick={() => navigate('account')}>
+              <span className="nav-btn-icon">🔐</span><span>{demoSession ? 'Account / Upgrade' : access?.isFull ? 'Account' : 'Upgrade'}</span>
+            </button>
             <button className="home-nav-btn danger" onClick={handleSignOut}>
-              <span className="nav-btn-icon">🔓</span><span>{offline ? 'Leave Offline Mode' : 'Sign Out'}</span>
+              <span className="nav-btn-icon">🔓</span><span>{demoSession ? 'Sign in / upgrade' : 'Sign Out'}</span>
             </button>
           </div>
         </div>
